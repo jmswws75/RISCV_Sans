@@ -4,8 +4,6 @@
 
 int pixel_buffer_start; // global variable
 
-// code not shown for clear_screen() and draw_line() subroutines
-
 void plot_pixel(int x, int y, short int line_color)
 {
     volatile short int *one_pixel_address;
@@ -13,7 +11,19 @@ void plot_pixel(int x, int y, short int line_color)
         *one_pixel_address = line_color;
 }
 
+// this function draws a vertical bone on the screen, at the specified coordinate.
+// the coordinate starts at the top left, then goes down and right.
+// for every bone, there are 3 parts: the top, bottom, and middle. the top and the bottom represents the "joint" of the bone, while the middle part is the flat part.
+// the length in the function represents how long the middle part is. the smallest length is 1. inputting anything smaller than a 1 as length will result in a bone of length 1.
+void draw_bone(int x0, int y0, int length, short int color) {
+    draw_rectangle(x0, y0, x0+1, y0+2, color);
+    draw_rectangle(x0+3, y0, x0+4, y0+2, color);
+    draw_rectangle(x0, y0+2+length+1, x0+1, y0+4+length+1, color);
+    draw_rectangle(x0+3, y0+2+length+1, x0+4, y0+4+length+1, color);
 
+    // draw the middle part
+    draw_rectangle(x0+1, y0+1, x0+3, y0+2+length+2, color);
+}
 
 void draw_line(int x0, int y0, int x1, int y1, int color){
 	bool is_steep = abs(y1 - y0) > abs(x1 - x0);
@@ -55,10 +65,13 @@ void draw_line(int x0, int y0, int x1, int y1, int color){
     }
 }
 
+// this function draws a rectangle (filled) on the screen with the correct color.
+// point 0 must be on the top left, 1 must be on bottom right, else the code does not work
+// I am too lazy to write the swap logic to figure out the order of traversal.
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color) {
     
-    for (int i = x0; i < x1; i++) {
-        for (int j = y0; j < y1; j++) {
+    for (int i = x0; i <= x1; i++) {
+        for (int j = y0; j <= y1; j++) {
             plot_pixel(i, j, color);
         }
     }
@@ -87,21 +100,24 @@ int main(void)
     draw_rectangle(120, 193, 202, 195, 0xFFFF);
     draw_rectangle(200, 113, 202, 195, 0xFFFF);
 
+    for (int i = 0; i < 200; i+=6) {
+        draw_bone(1+i,1,10 + i/3, 0xFFFF);
+    }
 
     while (1) {
         if ((*(pixel_ctrl_ptr + 3) & 0x00000001) != 0) {
             continue;
         }
         
-        if(curry == 239) {
-            dy = -1;
-        } else if (curry == 0) {
-            dy = 1;
-        }
+        // if(curry == 239) {
+        //     dy = -1;
+        // } else if (curry == 0) {
+        //     dy = 1;
+        // }
 
-        draw_line(0, curry, 319, curry, 0x0000);
-        curry = curry + dy;
-        draw_line(0, curry, 319, curry, 0xFFFF);
+        // draw_line(0, curry, 319, curry, 0x0000);
+        // curry = curry + dy;
+        // draw_line(0, curry, 319, curry, 0xFFFF);
 
         *pixel_ctrl_ptr = 1;
 
