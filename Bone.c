@@ -119,7 +119,7 @@ int main(void)
     /* Read location of the pixel buffer from the pixel buffer controller */
     pixel_buffer_start = *pixel_ctrl_ptr;
 
-    struct Bone b1 = {{256,256,256}, {256,256,256}, 100, 128, 0, 0xFFFF};
+    struct Bone b1 = {{124 << 8, 124 << 8, 124 << 8}, {117 << 8, 117 << 8, 117 << 8}, 60, 128, 0, 0xFFFF};
 
     /* set front pixel buffer to Buffer 1 */
     *(pixel_ctrl_ptr + 1) = (int) &Buffer1; // first store the address in the  back buffer
@@ -144,9 +144,9 @@ int main(void)
         draw_rectangle(200, 113, 202, 195, 0xFFFF);
         
 
-        if(b1.posx[0] >= 320 << 8) {
-            update_pos(256, b1.posx);
-            update_pos(256, b1.posy);
+        if(b1.posx[0] >= 198 << 8) {
+            update_pos(124 << 8, b1.posx);
+            update_pos(117 << 8, b1.posy);
         } else {
             update_pos(b1.posx[0] + b1.velox, b1.posx); 
         }
