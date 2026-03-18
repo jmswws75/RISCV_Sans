@@ -43,14 +43,14 @@ void update_pos(int newPos, int pos[]){
 // the coordinate starts at the top left, then goes down and right.
 // for every bone, there are 3 parts: the top, bottom, and middle. the top and the bottom represents the "joint" of the bone, while the middle part is the flat part.
 // the length in the function represents how long the middle part is. the smallest length is 1. inputting anything smaller than a 1 as length will result in a bone of length 1.
-void draw_bone(int x0, int y0, int length, short int color) {
-    draw_rectangle(x0, y0, x0+1, y0+2, color);
-    draw_rectangle(x0+3, y0, x0+4, y0+2, color);
-    draw_rectangle(x0, y0+2+length+1, x0+1, y0+4+length+1, color);
-    draw_rectangle(x0+3, y0+2+length+1, x0+4, y0+4+length+1, color);
+void draw_bone(int x0, int y0, int length, short int color, int bounds[4]) {
+    draw_rectangle(x0, y0, x0+1, y0+2, color, bounds);
+    draw_rectangle(x0+3, y0, x0+4, y0+2, color, bounds);
+    draw_rectangle(x0, y0+2+length+1, x0+1, y0+4+length+1, color, bounds);
+    draw_rectangle(x0+3, y0+2+length+1, x0+4, y0+4+length+1, color, bounds);
 
     // draw the middle part
-    draw_rectangle(x0+1, y0+1, x0+3, y0+2+length+2, color);
+    draw_rectangle(x0+1, y0+1, x0+3, y0+2+length+2, color, bounds);
 }
 
 void draw_line(int x0, int y0, int x1, int y1, int color){
@@ -96,10 +96,13 @@ void draw_line(int x0, int y0, int x1, int y1, int color){
 // this function draws a rectangle (filled) on the screen with the correct color.
 // point 0 must be on the top left, 1 must be on bottom right, else the code does not work
 // I am too lazy to write the swap logic to figure out the order of traversal.
-void draw_rectangle(int x0, int y0, int x1, int y1, short int color) {
+void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]) {
     
     for (int i = x0; i <= x1; i++) {
         for (int j = y0; j <= y1; j++) {
+            if (i < bounds[0] || i > bounds[2] || j < bounds[1] || j > bounds[3]) {
+                continue;
+            }
             plot_pixel(i, j, color);
         }
     }
@@ -134,25 +137,28 @@ int main(void)
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
     clear_screen(); // pixel_buffer_start points to the pixel buffer
 
+    int bounds_unlimited[4] = {0, 0, 360, 240};
+    int bounds_default[4] = {123, 116, 199, 192};
+
     while (1) {
 
         // TODO:
         
-        draw_rectangle(120, 113, 202, 115, 0xFFFF);
-        draw_rectangle(120, 113, 122, 195, 0xFFFF);
-        draw_rectangle(120, 193, 202, 195, 0xFFFF);
-        draw_rectangle(200, 113, 202, 195, 0xFFFF);
+        draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
+        draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
         
 
-        if(b1.posx[0] >= 198 << 8) {
-            update_pos(124 << 8, b1.posx);
+        if(b1.posx[0] >= 210 << 8) {
+            update_pos(119 << 8, b1.posx);
             update_pos(117 << 8, b1.posy);
         } else {
             update_pos(b1.posx[0] + b1.velox, b1.posx); 
         }
 
-        draw_bone(b1.posx[2] >> 8, b1.posy[2] >> 8, b1.length,0x0000); //erase old one
-        draw_bone(b1.posx[0] >> 8, b1.posy[0] >> 8, b1.length,0xFFFF); //draw new one
+        draw_bone(b1.posx[2] >> 8, b1.posy[2] >> 8, b1.length,0x0000, bounds_default); //erase old one
+        draw_bone(b1.posx[0] >> 8, b1.posy[0] >> 8, b1.length,0xFFFF, bounds_default); //draw new one
         
         wait_for_vsync();
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
