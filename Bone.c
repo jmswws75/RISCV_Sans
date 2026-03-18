@@ -2,13 +2,41 @@
 #include <math.h>
 #include <stdlib.h>
 
-int pixel_buffer_start; // global variable
+volatile int pixel_buffer_start; // global variable
+volatile int * pixel_ctrl_ptr = (int *) 0xFF203020;
+short int Buffer1[240][512]; // 240 rows, 512 (320 + padding) columns
+short int Buffer2[240][512];
+
+struct Bone {
+    // the positions and velocities are stored as multiples of 256 (2^8).
+    // i.e. x = 256 means x = 1. same for velocities.
+    // this is to make the calculation easier for the cpu. (avoid floating point arithmatic)
+    int posx[3];
+    int posy[3];
+    int length;
+    int velox;
+    int veloy;
+    short int color;
+};
+
+void wait_for_vsync() {
+    *pixel_ctrl_ptr = 1;
+    while ((*(pixel_ctrl_ptr + 3) & 0x00000001) != 0) {
+        continue;
+    }
+}
 
 void plot_pixel(int x, int y, short int line_color)
 {
     volatile short int *one_pixel_address;
         one_pixel_address = pixel_buffer_start + (y << 10) + (x << 1);
         *one_pixel_address = line_color;
+}
+
+void update_pos(int newPos, int pos[]){
+    pos[2] = pos[1];
+    pos[1] = pos[0];
+    pos[0] = newPos;
 }
 
 // this function draws a vertical bone on the screen, at the specified coordinate.
@@ -91,35 +119,43 @@ int main(void)
     /* Read location of the pixel buffer from the pixel buffer controller */
     pixel_buffer_start = *pixel_ctrl_ptr;
 
-    int curry = 0;
-    int dy = -1;
+    struct Bone b1 = {{256,256,256}, {256,256,256}, 100, 128, 0, 0xFFFF};
 
-    clear_screen();
-    draw_rectangle(120, 113, 202, 115, 0xFFFF);
-    draw_rectangle(120, 113, 122, 195, 0xFFFF);
-    draw_rectangle(120, 193, 202, 195, 0xFFFF);
-    draw_rectangle(200, 113, 202, 195, 0xFFFF);
+    /* set front pixel buffer to Buffer 1 */
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer1; // first store the address in the  back buffer
+    /* now, swap the front/back buffers, to set the front buffer location */
+    wait_for_vsync();
+    /* initialize a pointer to the pixel buffer, used by drawing functions */
+    pixel_buffer_start = *pixel_ctrl_ptr;
+    clear_screen(); // pixel_buffer_start points to the pixel buffer
 
-    for (int i = 0; i < 200; i+=6) {
-        draw_bone(1+i,1,10 + i/3, 0xFFFF);
-    }
+    /* set back pixel buffer to Buffer 2 */
+    *(pixel_ctrl_ptr + 1) = (int) &Buffer2;
+    pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+    clear_screen(); // pixel_buffer_start points to the pixel buffer
 
     while (1) {
-        if ((*(pixel_ctrl_ptr + 3) & 0x00000001) != 0) {
-            continue;
-        }
+
+        // TODO:
         
-        // if(curry == 239) {
-        //     dy = -1;
-        // } else if (curry == 0) {
-        //     dy = 1;
-        // }
+        draw_rectangle(120, 113, 202, 115, 0xFFFF);
+        draw_rectangle(120, 113, 122, 195, 0xFFFF);
+        draw_rectangle(120, 193, 202, 195, 0xFFFF);
+        draw_rectangle(200, 113, 202, 195, 0xFFFF);
+        
 
-        // draw_line(0, curry, 319, curry, 0x0000);
-        // curry = curry + dy;
-        // draw_line(0, curry, 319, curry, 0xFFFF);
+        if(b1.posx[0] >= 320 << 8) {
+            update_pos(256, b1.posx);
+            update_pos(256, b1.posy);
+        } else {
+            update_pos(b1.posx[0] + b1.velox, b1.posx); 
+        }
 
-        *pixel_ctrl_ptr = 1;
+        draw_bone(b1.posx[2] >> 8, b1.posy[2] >> 8, b1.length,0x0000); //erase old one
+        draw_bone(b1.posx[0] >> 8, b1.posy[0] >> 8, b1.length,0xFFFF); //draw new one
+        
+        wait_for_vsync();
+        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
 
     }
     
