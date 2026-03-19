@@ -102,6 +102,17 @@ void update_pos(int newPos, int pos[]){
     pos[0] = newPos;
 }
 
+void draw_blaster() {
+    for (int i = 0; i < GASTER_BLASTER_WIDTH; i++) {
+        for (int j = 0; j < GASTER_BLASTER_HEIGHT; j++) {
+            int index = i + j * 22;
+            if (Gaster_Blaster[index] != 0x0000) {
+                plot_pixel(i, j, Gaster_Blaster[index]);
+            }
+        }
+    }
+}
+
 // this function draws a vertical bone on the screen, at the specified coordinate.
 // the coordinate starts at the top left, then goes down and right.
 // for every bone, there are 3 parts: the top, bottom, and middle. the top and the bottom represents the "joint" of the bone, while the middle part is the flat part.
@@ -201,14 +212,14 @@ int main(void)
     struct Bone bone_army[10];
 
     for (int i = 0; i < 10; i++) {
-        bone_army[i].posx[0] = 124 - 6 * i << 8;
-        bone_army[i].posx[1] = 124 - 6 * i << 8;
-        bone_army[i].posx[2] = 124 - 6 * i << 8;
+        bone_army[i].posx[0] = 124 - 7 * i << 8;
+        bone_army[i].posx[1] = 124 - 7 * i << 8;
+        bone_army[i].posx[2] = 124 - 7 * i << 8;
         bone_army[i].posy[0] = 117 << 8;
         bone_army[i].posy[1] = 117 << 8;
         bone_army[i].posy[2] = 117 << 8;
         bone_army[i].length = 60 - (i * i) * 0.5;
-        bone_army[i].velox = 256;
+        bone_army[i].velox = 1024;
         bone_army[i].veloy = 0;
         bone_army[i].color = 0xFFFF;
     }
@@ -219,15 +230,6 @@ int main(void)
     while (1) {
 
         // TODO:
-
-        for (int i = 0; i < GASTER_BLASTER_WIDTH; i++) {
-            for (int j = 0; j < GASTER_BLASTER_HEIGHT; j++) {
-                int index = i + j * 22;
-                if (Gaster_Blaster[index] != 0x0000) {
-                    plot_pixel(i, j, Gaster_Blaster[index]);
-                }
-            }
-        }
         
         draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
         draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
@@ -235,7 +237,7 @@ int main(void)
         draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
         
         for (int i = 0; i < 10; i++) {
-            draw_bone(bone_army[i].posx[2] >> 8, bone_army[i].posy[2] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
+            draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
         }
 
         for (int i = 0; i < 10; i++) {
