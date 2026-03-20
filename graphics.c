@@ -132,7 +132,7 @@ void plot_pixel(int x, int y, short int line_color)
     *one_pixel_address = line_color;
 }
 
-void draw_line(int x0, int y0, int x1, int y1, int color){
+void draw_line(int x0, int y0, int x1, int y1, short int color){
 	bool is_steep = abs(y1 - y0) > abs(x1 - x0);
     if (is_steep) {
         int temp = x0;
@@ -185,6 +185,13 @@ void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[
             plot_pixel(i, j, color);
         }
     }
+}
+
+void draw_rectangle_outline(int x0, int y0, int x1, int y1, short int color) {
+    draw_line(x0, y0, x1, y0, color); 
+    draw_line(x1, y0, x1, y1, color); 
+    draw_line(x1, y1, x0, y1, color); 
+    draw_line(x0, y1, x0, y0, color); 
 }
 
 void draw_blaster(struct blaster *blaster_ptr) {
