@@ -7,6 +7,6 @@
 
 int main(void)
 {
-    run_stage_0();
+    run_stage_1();
     
 }

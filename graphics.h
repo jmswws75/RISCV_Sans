@@ -16,6 +16,20 @@ struct Bone {
     short int color;
 };
 
+struct blaster {
+    int posx;
+    int posy;
+    int size;
+    int rotation;
+    // the blaster will stay on screen for 100 frames total.
+    // it takes 20 + 48 frames to appear before firing. after it fires, it will stay there for 80 frames.
+    int frameCount;
+};
+
+struct platform {
+
+};
+
 void wait_for_vsync();
 void plot_pixel(int x, int y, short int line_color);
 void update_pos(int newPos, int pos[]);

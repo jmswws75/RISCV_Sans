@@ -21,14 +21,21 @@ void run_stage_0() {
 
     graphics_init();
 
-    while (1) {
+    draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
 
-        // TODO:
-        
-        draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
-        draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
-        draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
-        draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
+    swap_buffers();
+
+    draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
+
+    swap_buffers();
+
+    while (1) {
         
         for (int i = 0; i < 10; i++) {
             draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
