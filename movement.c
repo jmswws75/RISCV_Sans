@@ -65,25 +65,27 @@ int main(void)
         old_y = y;
 
         while (1) {
+			// keep reading until buffer is empty (clears all pending input and nothing gets stuck in FIFO)
             PS2_data = *PS2_ptr;
-            RVALID = PS2_data & 0x8000;
-            if (!RVALID){
+            RVALID = PS2_data & 0x8000;	// check if new data is available
+            if (!RVALID){	// if no data exit loop
                 break;
 			}
 
-            byte = PS2_data & 0xFF;
-
-            if (byte != (char)0xF0 && last_byte != (char)0xF0) {
-                if (byte == (char)0x1D) {
+            byte = PS2_data & 0xFF;	// Read the key code
+			
+			// Only act on real key presses not the release
+            if (byte != (char)0xF0 && last_byte != (char)0xF0) {	// Checks that this is not a release signal, Prevents using the byte right after a release (avoid mistake)
+                if (byte == 0x1D) {
                     if (y > 0) y--;
                 }
-                else if (byte == (char)0x1C) {
+                else if (byte == 0x1C) {
                     if (x > 0) x--;
                 }
-                else if (byte == (char)0x1B) {
+                else if (byte == 0x1B) {
                     if (y < 238) y++;
                 }
-                else if (byte == (char)0x23) {
+                else if (byte == 0x23) {
                     if (x < 318) x++;
                 }
             }
@@ -91,7 +93,7 @@ int main(void)
             last_byte = byte;
         }
 
-        if (x != old_x || y != old_y) {
+        if (x != old_x || y != old_y) {	// Avoid unnecessary drawing when nothing changes
             draw_player(old_x, old_y, 0x0000);
             draw_player(x, y, 0xFFFF);
         }
