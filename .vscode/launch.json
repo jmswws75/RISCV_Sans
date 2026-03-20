@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/JMSWW/Desktop/ECE243/RISCV_Sans",
-      "program": "c:/Users/JMSWW/Desktop/ECE243/RISCV_Sans/build/Debug/outDebug",
+      "cwd": "c:/Users/islee/OneDrive/Desktop/ECE243/RISCV_Sans",
+      "program": "c:/Users/islee/OneDrive/Desktop/ECE243/RISCV_Sans/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
