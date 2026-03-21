@@ -6,6 +6,9 @@ void run_stage_1() {
     struct blaster blaster1;
     blaster1.posx = 10;
     blaster1.posy = 10;
+    blaster1.centerx = 50;
+    blaster1.centery = 50;
+    blaster1.rotation = 45;
     blaster1.frameCount = 0;
 
     int bounds_unlimited[4] = {0, 0, 360, 240};
@@ -26,7 +29,8 @@ void run_stage_1() {
     swap_buffers();
 
     while (1) {
-        draw_blaster(&blaster1);
+        draw_any_blaster(&blaster1);
+        // draw_blaster(&blaster1);
         swap_buffers();
     }
 }

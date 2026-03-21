@@ -19,6 +19,8 @@ struct Bone {
 struct blaster {
     int posx;
     int posy;
+    int centerx;
+    int centery;
     int size;
     int rotation;
     // the blaster will stay on screen for 100 frames total.
@@ -35,7 +37,7 @@ void plot_pixel(int x, int y, short int line_color);
 void update_pos(int newPos, int pos[]);
 void draw_blaster();
 void draw_bone(int x0, int y0, int length, short int color, int bounds[4]);
-void draw_line(int x0, int y0, int x1, int y1, int color);
+void draw_line(int x0, int y0, int x1, int y1, short int color);
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]);
 void clear_screen();
 
