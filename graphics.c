@@ -257,12 +257,19 @@ void draw_line(int x0, int y0, int x1, int y1, short int color){
 // I am too lazy to write the swap logic to figure out the order of traversal.
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]) {
     
-    for (int i = x0; i <= x1; i++) {
-        for (int j = y0; j <= y1; j++) {
-            if (i < bounds[0] || i > bounds[2] || j < bounds[1] || j > bounds[3]) {
-                continue;
-            }
-            plot_pixel(i, j, color);
+    int start_x = x0; if (start_x < bounds[0]) {start_x = bounds[0];}
+    int end_x = x1;   if (end_x > bounds[2]) {end_x = bounds[2];}
+    int start_y = y0; if (start_y < bounds[1]) {start_y = bounds[1];}
+    int end_y = y1;   if (end_y > bounds[3]) {end_y = bounds[3];}
+
+    if (start_x > end_x || start_y > end_y) {return;}
+
+    for (int j = start_y; j <= end_y; j++) {
+
+        volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (start_x << 1));
+        for (int i = start_x; i <= end_x; i++) {
+            *pixel_ptr = color;
+            pixel_ptr++;
         }
     }
 }
@@ -346,28 +353,36 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
 		int centreDistanceY = j - cy;
 		int y_x = centreDistanceY * sinV;
 		int y_y = centreDistanceY * cosV;
+
+        volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (min_x << 1));
 		
+        int unrotated_X = (min_x - cx) * cosV + y_x;
+        int unrotated_Y = -1 * (min_x - cx) * sinV + y_y;
+
         for (int i = min_x; i < max_x; i++) {
             // calculate centre of blaster head to current pixel location
-            int centreDistanceX = i - cx;
 
-            int sourceX = ((centreDistanceX * cosV + y_x) >> 8) + (GASTER_BLASTER_WIDTH >> 1);
-            int sourceY = ((-1 * centreDistanceX * sinV + y_y) >> 8) + (GASTER_BLASTER_HEIGHT >> 1);
+            int sourceX = ((unrotated_X) >> 8) + (GASTER_BLASTER_WIDTH >> 1);
+            int sourceY = ((unrotated_Y) >> 8) + (GASTER_BLASTER_HEIGHT >> 1);
 
             // draw head
             if (sourceX >= 0 && sourceX < GASTER_BLASTER_WIDTH && sourceY >= 0 && sourceY < GASTER_BLASTER_HEIGHT) {
                 int index = sourceX + sourceY * GASTER_BLASTER_WIDTH;
                 if (Gaster_Blaster[index] == 1) {
-                    plot_pixel(i, j, blasterColor);
+                    *pixel_ptr = blasterColor;
                 }
             }
+            pixel_ptr++;
+
+            unrotated_X += cosV;
+            unrotated_Y -= sinV;
         }
     }
 
     if (frame == 68) {
         int halfWidth = GASTER_BLASTER_WIDTH / 2;
         int halfHeight = GASTER_BLASTER_HEIGHT / 2;
-        int beamLength = 200;
+        int beamLength = 80;
 
         int xUnrotated[4] = { -halfWidth, halfWidth, halfWidth, -halfWidth};
         int yUnrotated[4] = { halfHeight, halfHeight, halfHeight + beamLength, halfHeight + beamLength};
@@ -381,7 +396,7 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
         store_beam(blaster_ptr, verticesX, verticesY);
     }
 
-    if ((frame >= 68 && frame < 148)) {
+    if ((frame >= 68 && frame <= 148)) {
         for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j++) {
             int xLeft = blaster_ptr->beam_min_x[j];
             int xRight = blaster_ptr->beam_max_x[j];

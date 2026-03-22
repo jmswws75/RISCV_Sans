@@ -95,7 +95,7 @@ void run_stage_1();
 
 int main(void)
 {
-    run_stage_1();
+    run_stage_0();
     
 }
 
@@ -364,23 +364,20 @@ void draw_line(int x0, int y0, int x1, int y1, short int color){
 // point 0 must be on the top left, 1 must be on bottom right, else the code does not work
 // I am too lazy to write the swap logic to figure out the order of traversal.
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]) {
-    // 1. Pre-clamp the coordinates to the bounds! 
-    // This removes the heavy 'if' statement from the inner loop.
-    int start_x = x0; if (start_x < bounds[0]) start_x = bounds[0];
-    int end_x = x1;   if (end_x > bounds[2]) end_x = bounds[2];
-    int start_y = y0; if (start_y < bounds[1]) start_y = bounds[1];
-    int end_y = y1;   if (end_y > bounds[3]) end_y = bounds[3];
+    
+    int start_x = x0; if (start_x < bounds[0]) {start_x = bounds[0];}
+    int end_x = x1;   if (end_x > bounds[2]) {end_x = bounds[2];}
+    int start_y = y0; if (start_y < bounds[1]) {start_y = bounds[1];}
+    int end_y = y1;   if (end_y > bounds[3]) {end_y = bounds[3];}
 
-    if (start_x > end_x || start_y > end_y) return; // Completely off-screen
+    if (start_x > end_x || start_y > end_y) {return;}
 
-    // 2. Y loop on the OUTSIDE, X loop on the INSIDE (Horizontal drawing!)
     for (int j = start_y; j <= end_y; j++) {
-        // Fast pointer initialization for the row
+
         volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (start_x << 1));
-        
         for (int i = start_x; i <= end_x; i++) {
-            *pixel_ptr = color; // Fast write!
-            pixel_ptr++;        // Move to the next horizontal pixel
+            *pixel_ptr = color;
+            pixel_ptr++;
         }
     }
 }
@@ -460,40 +457,40 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
 
 
     for (int j = min_y; j < max_y; j++) {
-        
-        int centreDistanceY = j - cy;
-        int y_x = centreDistanceY * sinV;
-        int y_y = centreDistanceY * cosV;
-        
-        volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (min_x << 1));
+		
+		int centreDistanceY = j - cy;
+		int y_x = centreDistanceY * sinV;
+		int y_y = centreDistanceY * cosV;
 
-        // Start our accumulators at the far-left edge of the box
-        int unshifted_X = (min_x - cx) * cosV + y_x;
-        int unshifted_Y = -1 * (min_x - cx) * sinV + y_y;
+        volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (min_x << 1));
+		
+        int unrotated_X = (min_x - cx) * cosV + y_x;
+        int unrotated_Y = -1 * (min_x - cx) * sinV + y_y;
 
         for (int i = min_x; i < max_x; i++) {
+            // calculate centre of blaster head to current pixel location
 
-            int sourceX = (unshifted_X >> 8) + (GASTER_BLASTER_WIDTH >> 1);
-            int sourceY = (unshifted_Y >> 8) + (GASTER_BLASTER_HEIGHT >> 1);
+            int sourceX = ((unrotated_X) >> 8) + (GASTER_BLASTER_WIDTH >> 1);
+            int sourceY = ((unrotated_Y) >> 8) + (GASTER_BLASTER_HEIGHT >> 1);
 
+            // draw head
             if (sourceX >= 0 && sourceX < GASTER_BLASTER_WIDTH && sourceY >= 0 && sourceY < GASTER_BLASTER_HEIGHT) {
                 int index = sourceX + sourceY * GASTER_BLASTER_WIDTH;
                 if (Gaster_Blaster[index] == 1) {
                     *pixel_ptr = blasterColor;
                 }
             }
-            
-            pixel_ptr++; 
-            // Just add/subtract the slope values! No multiplication needed!
-            unshifted_X += cosV;  
-            unshifted_Y -= sinV;  
+            pixel_ptr++;
+
+            unrotated_X += cosV;
+            unrotated_Y -= sinV;
         }
     }
 
     if (frame == 68) {
         int halfWidth = GASTER_BLASTER_WIDTH / 2;
         int halfHeight = GASTER_BLASTER_HEIGHT / 2;
-        int beamLength = 200;
+        int beamLength = 80;
 
         int xUnrotated[4] = { -halfWidth, halfWidth, halfWidth, -halfWidth};
         int yUnrotated[4] = { halfHeight, halfHeight, halfHeight + beamLength, halfHeight + beamLength};
@@ -507,7 +504,7 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
         store_beam(blaster_ptr, verticesX, verticesY);
     }
 
-    if ((frame >= 68 && frame < 148)) {
+    if ((frame >= 68 && frame <= 148)) {
         for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j++) {
             int xLeft = blaster_ptr->beam_min_x[j];
             int xRight = blaster_ptr->beam_max_x[j];
@@ -713,7 +710,7 @@ void run_stage_0() {
 
     frameCount = 0; // reset frameCount
 
-    // substage0
+    // substage0: red lines
     while (1) {
         if (frameCount > 9) {
             break;
@@ -729,7 +726,7 @@ void run_stage_0() {
     swap_buffers();
     draw_rectangle_outline(124, 166, 198, 191, 0x0000);
 
-    // substage1
+    // substage1: bottom bone
     struct Bone bone_army_1[20];
     for (int i = 0; i < 20; i++) {
         bone_army_1[i].posx[0] = 199 - 7 * i << 8;
@@ -778,6 +775,8 @@ void run_stage_0() {
     }
     swap_buffers();
 
+
+    // substage 2: sin wave
     struct Bone bone_army[40];
 
     // loop to create the bones for the sin wave intro attack.
@@ -811,29 +810,120 @@ void run_stage_0() {
         bone_army[i+20].color = 0xFFFF;
     }
 
-    
-
-    
-
     while (1) {
         
-        
-
         for (int i = 0; i < 40; i++) {
             draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
         }
 
         for (int i = 0; i < 40; i++) {
-            if(bone_army[i].posx[0] >= 210 << 8) {
-                update_pos(-300 << 8, bone_army[i].posx);
-            } else {
-                update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
-            }
+            update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
             draw_bone(bone_army[i].posx[0] >> 8, bone_army[i].posy[0] >> 8, bone_army[i].length,0xFFFF, bounds_default); //draw new one
+        }
+
+        if(bone_army[39].posx[0] >= 240 << 8) {
+            break;
         }
 
         swap_buffers();
 
+    }
+
+    // substage 3: blasters
+    struct blaster blaster_army_0[4];
+    blaster_army_0[0].centerx = 135;
+    blaster_army_0[0].centery = 70;
+	blaster_army_0[0].rotation = 0;
+    blaster_army_0[0].frameCount = 0;
+	
+    blaster_army_0[1].centerx = 80;
+    blaster_army_0[1].centery = 128;
+	blaster_army_0[1].rotation = 270;
+    blaster_army_0[1].frameCount = 0;
+	
+    blaster_army_0[2].centerx = 187;
+    blaster_army_0[2].centery = 225;
+	blaster_army_0[2].rotation = 180;
+    blaster_army_0[2].frameCount = 0;
+	
+    blaster_army_0[3].centerx = 235;
+    blaster_army_0[3].centery = 181;
+	blaster_army_0[3].rotation = 90;
+    blaster_army_0[3].frameCount = 0;
+    
+
+    struct blaster blaster_army_1[4];
+	blaster_army_1[0].centerx = 100;
+    blaster_army_1[0].centery = 95;
+	blaster_army_1[0].rotation = 315;
+    blaster_army_1[0].frameCount = -200;
+	
+    blaster_army_1[1].centerx = 100;
+    blaster_army_1[1].centery = 215;
+	blaster_army_1[1].rotation = 225;
+    blaster_army_1[1].frameCount = -200;
+	
+    blaster_army_1[2].centerx = 220;
+    blaster_army_1[2].centery = 215;
+	blaster_army_1[2].rotation = 135;
+    blaster_army_1[2].frameCount = -200;
+	
+    blaster_army_1[3].centerx = 220;
+    blaster_army_1[3].centery = 100;
+	blaster_army_1[3].rotation = 45;
+    blaster_army_1[3].frameCount = -200;
+	
+	
+    struct blaster blaster_army_2[4];
+	blaster_army_2[0].centerx = 135;
+    blaster_army_2[0].centery = 70;
+	blaster_army_2[0].rotation = 0;
+    blaster_army_2[0].frameCount = -400;
+	
+    blaster_army_2[1].centerx = 80;
+    blaster_army_2[1].centery = 128;
+	blaster_army_2[1].rotation = 270;
+    blaster_army_2[1].frameCount = -400;
+	
+    blaster_army_2[2].centerx = 187;
+    blaster_army_2[2].centery = 225;
+	blaster_army_2[2].rotation = 180;
+    blaster_army_2[2].frameCount = -400;
+	
+    blaster_army_2[3].centerx = 235;
+    blaster_army_2[3].centery = 181;
+	blaster_army_2[3].rotation = 90;
+    blaster_army_2[3].frameCount = -400;
+	
+    struct blaster blaster_army_3[2];
+	blaster_army_3[0].centerx = 90;
+    blaster_army_3[0].centery = 145;
+	blaster_army_3[0].rotation = 270;
+    blaster_army_3[0].frameCount = -600;
+	
+    blaster_army_3[1].centerx = 230;
+    blaster_army_3[1].centery = 160;
+	blaster_army_3[1].rotation = 90;
+    blaster_army_3[1].frameCount = -600;
+
+    while (1) {
+		
+		for (int i = 0; i < 4; i++) {
+			draw_any_blaster(&blaster_army_0[i], bounds_unlimited);
+			draw_any_blaster(&blaster_army_1[i], bounds_unlimited);
+			draw_any_blaster(&blaster_army_2[i], bounds_unlimited);
+		}
+		
+		draw_any_blaster(&blaster_army_3[0], bounds_unlimited);
+		draw_any_blaster(&blaster_army_3[1], bounds_unlimited);
+		
+        draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
+        draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
+
+        
+        swap_buffers();
     }
 }
 // END FILE: stage_0.c
@@ -851,11 +941,11 @@ void run_stage_1() {
 
 	struct blaster blaster_army[10];
 	
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 10; i++) {
 		blaster_army[i].centerx = 300;
 		blaster_army[i].centery = 20 + 20 * i;
 		blaster_army[i].rotation = 90;
-		blaster_army[i].frameCount = 0;
+		blaster_army[i].frameCount = 0 - 10 * i;
 	}
     
 
@@ -917,7 +1007,7 @@ void run_stage_1() {
             draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
         }
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 10; i++) {
 			draw_any_blaster(&blaster_army[i], bounds_default);
 		}
 
