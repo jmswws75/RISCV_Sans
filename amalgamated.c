@@ -1,4 +1,112 @@
-#include "graphics.h"
+// AUTO-GENERATED AMALGAMATED C FILE
+
+
+// ==================================================
+// BEGIN FILE: graphics.h
+// ==================================================
+
+#ifndef GRAPHICS_H
+#define GRAPHICS_H
+
+#define GASTER_BLASTER_HEIGHT 56
+#define GASTER_BLASTER_WIDTH 22
+
+struct Bone {
+    // the positions and velocities are stored as multiples of 256 (2^8).
+    // i.e. x = 256 means x = 1. same for velocities.
+    // this is to make the calculation easier for the cpu. (avoid floating point arithmatic)
+    int posx[3];
+    int posy[3];
+    int length;
+    int velox;
+    int veloy;
+    short int color;
+};
+
+struct blaster {
+    int centerx;
+    int centery;
+    int size;
+    int rotation;
+    // the blaster will stay on screen for 100 frames total.
+    // it takes 20 + 48 frames to appear before firing. after it fires, it will stay there for 80 frames.
+    int frameCount;
+
+    // these are for storing the beams location, you dont need to initialize them!
+    int beam_min_y;
+    int beam_max_y;
+    int beam_min_x[240];
+    int beam_max_x[240];
+};
+
+struct platform {
+
+};
+
+void wait_for_vsync();
+void plot_pixel(int x, int y, short int line_color);
+void update_pos(int newPos, int pos[]);
+void draw_blaster();
+void draw_bone(int x0, int y0, int length, short int color, int bounds[4]);
+void draw_line(int x0, int y0, int x1, int y1, short int color);
+void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]);
+void clear_screen();
+
+#endif
+// END FILE: graphics.h
+
+
+// ==================================================
+// BEGIN FILE: stage_0.h
+// ==================================================
+
+#ifndef STAGE_0_H
+#define STAGE_0_H
+
+void run_stage_0();
+
+#endif
+// END FILE: stage_0.h
+
+
+// ==================================================
+// BEGIN FILE: stage_1.h
+// ==================================================
+
+#ifndef STAGE_1_H
+#define STAGE_1_H
+
+void run_stage_1();
+
+#endif
+// END FILE: stage_1.h
+
+
+// ==================================================
+// BEGIN FILE: Bone.c
+// ==================================================
+
+#include <stdbool.h>
+#include <math.h>
+#include <stdlib.h>
+// [Amalgamator] Removed: #include "graphics.h"
+// [Amalgamator] Removed: #include "stage_0.h"
+
+
+int main(void)
+{
+    run_stage_1();
+    
+}
+
+// END FILE: Bone.c
+
+
+// ==================================================
+// BEGIN FILE: graphics.c
+// ==================================================
+
+// [Amalgamator] Removed: #include "graphics.h"
 #include <stdbool.h>
 #include <math.h>
 #include <stdlib.h>
@@ -256,13 +364,23 @@ void draw_line(int x0, int y0, int x1, int y1, short int color){
 // point 0 must be on the top left, 1 must be on bottom right, else the code does not work
 // I am too lazy to write the swap logic to figure out the order of traversal.
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]) {
-    
-    for (int i = x0; i <= x1; i++) {
-        for (int j = y0; j <= y1; j++) {
-            if (i < bounds[0] || i > bounds[2] || j < bounds[1] || j > bounds[3]) {
-                continue;
-            }
-            plot_pixel(i, j, color);
+    // 1. Pre-clamp the coordinates to the bounds! 
+    // This removes the heavy 'if' statement from the inner loop.
+    int start_x = x0; if (start_x < bounds[0]) start_x = bounds[0];
+    int end_x = x1;   if (end_x > bounds[2]) end_x = bounds[2];
+    int start_y = y0; if (start_y < bounds[1]) start_y = bounds[1];
+    int end_y = y1;   if (end_y > bounds[3]) end_y = bounds[3];
+
+    if (start_x > end_x || start_y > end_y) return; // Completely off-screen
+
+    // 2. Y loop on the OUTSIDE, X loop on the INSIDE (Horizontal drawing!)
+    for (int j = start_y; j <= end_y; j++) {
+        // Fast pointer initialization for the row
+        volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (start_x << 1));
+        
+        for (int i = start_x; i <= end_x; i++) {
+            *pixel_ptr = color; // Fast write!
+            pixel_ptr++;        // Move to the next horizontal pixel
         }
     }
 }
@@ -342,25 +460,33 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
 
 
     for (int j = min_y; j < max_y; j++) {
-		
-		int centreDistanceY = j - cy;
-		int y_x = centreDistanceY * sinV;
-		int y_y = centreDistanceY * cosV;
-		
+        
+        int centreDistanceY = j - cy;
+        int y_x = centreDistanceY * sinV;
+        int y_y = centreDistanceY * cosV;
+        
+        volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (min_x << 1));
+
+        // Start our accumulators at the far-left edge of the box
+        int unshifted_X = (min_x - cx) * cosV + y_x;
+        int unshifted_Y = -1 * (min_x - cx) * sinV + y_y;
+
         for (int i = min_x; i < max_x; i++) {
-            // calculate centre of blaster head to current pixel location
-            int centreDistanceX = i - cx;
 
-            int sourceX = ((centreDistanceX * cosV + y_x) >> 8) + (GASTER_BLASTER_WIDTH >> 1);
-            int sourceY = ((-1 * centreDistanceX * sinV + y_y) >> 8) + (GASTER_BLASTER_HEIGHT >> 1);
+            int sourceX = (unshifted_X >> 8) + (GASTER_BLASTER_WIDTH >> 1);
+            int sourceY = (unshifted_Y >> 8) + (GASTER_BLASTER_HEIGHT >> 1);
 
-            // draw head
             if (sourceX >= 0 && sourceX < GASTER_BLASTER_WIDTH && sourceY >= 0 && sourceY < GASTER_BLASTER_HEIGHT) {
                 int index = sourceX + sourceY * GASTER_BLASTER_WIDTH;
                 if (Gaster_Blaster[index] == 1) {
-                    plot_pixel(i, j, blasterColor);
+                    *pixel_ptr = blasterColor;
                 }
             }
+            
+            pixel_ptr++; 
+            // Just add/subtract the slope values! No multiplication needed!
+            unshifted_X += cosV;  
+            unshifted_Y -= sinV;  
         }
     }
 
@@ -429,4 +555,388 @@ void clear_screen(){
         }
     }
 }
+
+
+// END FILE: graphics.c
+
+
+// ==================================================
+// BEGIN FILE: movement.c
+// ==================================================
+
+// #include <stdbool.h>
+// #include <stdlib.h>
+
+// #define PS2_BASE 0xFF200100
+
+// volatile int pixel_buffer_start;
+// volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
+// volatile int *PS2_ptr = (int *)PS2_BASE;
+
+// void plot_pixel(int x, int y, short int color);
+// void clear_screen(void);
+// void draw_rectangle(int x0, int y0, int x1, int y1, short int color);
+// void draw_player(int x, int y, short int color);
+
+// void plot_pixel(int x, int y, short int color)
+// {
+//     volatile short int *one_pixel_address;
+//     one_pixel_address = (volatile short int *)(pixel_buffer_start + (y << 10) + (x << 1));
+//     *one_pixel_address = color;
+// }
+
+// void clear_screen(void)
+// {
+//     int x, y;
+//     for (x = 0; x < 320; x++) {
+//         for (y = 0; y < 240; y++) {
+//             plot_pixel(x, y, 0x0000);
+//         }
+//     }
+// }
+
+// void draw_rectangle(int x0, int y0, int x1, int y1, short int color)
+// {
+//     int x, y;
+//     for (x = x0; x <= x1; x++) {
+//         for (y = y0; y <= y1; y++) {
+//             plot_pixel(x, y, color);
+//         }
+//     }
+// }
+
+// void draw_player(int x, int y, short int color)
+// {
+//     draw_rectangle(x, y, x + 1, y + 1, color);
+// }
+
+// int main(void)
+// {
+//     int x = 10;
+//     int y = 120;
+//     int old_x = x;
+//     int old_y = y;
+
+//     int PS2_data;
+//     int RVALID;
+//     char byte;
+//     char last_byte = 0;
+
+//     pixel_buffer_start = *pixel_ctrl_ptr;
+//     clear_screen();
+//     draw_player(x, y, 0xFFFF);
+
+//     while (1) {
+//         old_x = x;
+//         old_y = y;
+
+//         while (1) {
+// 			// keep reading until buffer is empty (clears all pending input and nothing gets stuck in FIFO)
+//             PS2_data = *PS2_ptr;
+//             RVALID = PS2_data & 0x8000;	// check if new data is available
+//             if (!RVALID){	// if no data exit loop
+//                 break;
+// 			}
+
+//             byte = PS2_data & 0xFF;	// Read the key code
+			
+// 			// Only act on real key presses not the release
+//             if (byte != (char)0xF0 && last_byte != (char)0xF0) {	// Checks that this is not a release signal, Prevents using the byte right after a release (avoid mistake)
+//                 if (byte == 0x1D) {
+//                     if (y > 0) y--;
+//                 }
+//                 else if (byte == 0x1C) {
+//                     if (x > 0) x--;
+//                 }
+//                 else if (byte == 0x1B) {
+//                     if (y < 238) y++;
+//                 }
+//                 else if (byte == 0x23) {
+//                     if (x < 318) x++;
+//                 }
+//             }
+
+//             last_byte = byte;
+//         }
+
+//         if (x != old_x || y != old_y) {	// Avoid unnecessary drawing when nothing changes
+//             draw_player(old_x, old_y, 0x0000);
+//             draw_player(x, y, 0xFFFF);
+//         }
+//     }
+
+//     return 0;
+// }
+// END FILE: movement.c
+
+
+// ==================================================
+// BEGIN FILE: stage_0.c
+// ==================================================
+
+// [Amalgamator] Removed: #include "graphics.h"
+#include <math.h>
+
+int subStageCount = 0;
+
+void run_stage_0() {
+
+    int bounds_unlimited[4] = {0, 0, 360, 240};
+    int bounds_default[4] = {123, 116, 199, 192};
+
+    graphics_init();
+
+    draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
+
+    swap_buffers();
+
+    draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
+
+    swap_buffers();
+
+    
+    // wait for half a sec
+    int frameCount = 0;
+    while (1) {
+        if (frameCount > 30) {
+            break;
+        }
+        swap_buffers();
+        frameCount++;
+    }
+
+    frameCount = 0; // reset frameCount
+
+    // substage0
+    while (1) {
+        if (frameCount > 9) {
+            break;
+        }
+
+        draw_rectangle_outline(124, 166, 198, 191, 0xf800);
+        swap_buffers();
+        frameCount++;
+    }
+
+    frameCount = 0;
+    draw_rectangle_outline(124, 166, 198, 191, 0x0000);
+    swap_buffers();
+    draw_rectangle_outline(124, 166, 198, 191, 0x0000);
+
+    // substage1
+    struct Bone bone_army_1[20];
+    for (int i = 0; i < 20; i++) {
+        bone_army_1[i].posx[0] = 199 - 7 * i << 8;
+        bone_army_1[i].posx[1] = 199 - 7 * i << 8;
+        bone_army_1[i].posx[2] = 199 - 7 * i << 8;
+        bone_army_1[i].posy[0] = 196 << 8;
+        bone_army_1[i].posy[1] = 196 << 8;
+        bone_army_1[i].posy[2] = 196 << 8;
+        bone_army_1[i].length = 30;
+        bone_army_1[i].velox = 0;
+        bone_army_1[i].veloy = -512;
+        bone_army_1[i].color = 0xFFFF;
+    }
+
+    while (1) {
+        
+        if (frameCount > 120) {
+            break;
+        }
+
+        for (int i = 0; i < 20; i++) {
+            draw_bone(bone_army_1[i].posx[1] >> 8, bone_army_1[i].posy[1] >> 8, bone_army_1[i].length,0x0000, bounds_default); //erase old one
+        }
+
+        for (int i = 0; i < 20; i++) {
+            if(bone_army_1[i].posy[0] <= 166 << 8) {
+                bone_army_1[i].veloy = 0;
+            } else {
+                update_pos(bone_army_1[i].posy[0] + bone_army_1[i].veloy, bone_army_1[i].posy); 
+            }
+            draw_bone(bone_army_1[i].posx[0] >> 8, bone_army_1[i].posy[0] >> 8, bone_army_1[i].length,0xFFFF, bounds_default); //draw new one
+        }
+
+        swap_buffers();
+        frameCount++;
+
+    }
+
+    // erase all bones from substage1
+    for (int i = 0; i < 20; i++) {
+        draw_bone(bone_army_1[i].posx[0] >> 8, bone_army_1[i].posy[0] >> 8, bone_army_1[i].length,0x0000, bounds_default); //erase old one
+    }
+    swap_buffers();
+    for (int i = 0; i < 20; i++) {
+        draw_bone(bone_army_1[i].posx[0] >> 8, bone_army_1[i].posy[0] >> 8, bone_army_1[i].length,0x0000, bounds_default); //erase old one
+    }
+    swap_buffers();
+
+    struct Bone bone_army[40];
+
+    // loop to create the bones for the sin wave intro attack.
+    // gap between top bone and bottom bone is 38/2 = 19 pixels
+    for (int i = 0; i < 20; i++) {
+
+		int sinValue = sin( (double)i / 3) * 20;
+		
+        bone_army[i].posx[0] = 60 - 14 * i << 8;
+        bone_army[i].posx[1] = 60 - 14 * i << 8;
+        bone_army[i].posx[2] = 60 - 14 * i << 8;
+        bone_army[i].posy[0] = 117 << 8;
+        bone_army[i].posy[1] = 117 << 8;
+        bone_army[i].posy[2] = 117 << 8;
+        bone_army[i].length = 20 + sinValue;
+        bone_army[i].velox = 512;
+        bone_army[i].veloy = 0;
+        bone_army[i].color = 0xFFFF;
+
+        int posy = 117 + (int)(41 + sinValue) << 8;
+
+        bone_army[i+20].posx[0] = 60 - 14 * i << 8;
+        bone_army[i+20].posx[1] = 60 - 14 * i << 8;
+        bone_army[i+20].posx[2] = 60 - 14 * i << 8;
+        bone_army[i+20].posy[0] = posy;
+        bone_army[i+20].posy[1] = posy;
+        bone_army[i+20].posy[2] = posy;
+        bone_army[i+20].length = 186- (posy >> 8);
+        bone_army[i+20].velox = 512;
+        bone_army[i+20].veloy = 0;
+        bone_army[i+20].color = 0xFFFF;
+    }
+
+    
+
+    
+
+    while (1) {
+        
+        
+
+        for (int i = 0; i < 40; i++) {
+            draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
+        }
+
+        for (int i = 0; i < 40; i++) {
+            if(bone_army[i].posx[0] >= 210 << 8) {
+                update_pos(-300 << 8, bone_army[i].posx);
+            } else {
+                update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
+            }
+            draw_bone(bone_army[i].posx[0] >> 8, bone_army[i].posy[0] >> 8, bone_army[i].length,0xFFFF, bounds_default); //draw new one
+        }
+
+        swap_buffers();
+
+    }
+}
+// END FILE: stage_0.c
+
+
+// ==================================================
+// BEGIN FILE: stage_1.c
+// ==================================================
+
+// [Amalgamator] Removed: #include "graphics.h"
+#include <math.h>
+
+void run_stage_1() {
+    graphics_init();
+
+	struct blaster blaster_army[10];
+	
+	for (int i = 0; i < 4; i++) {
+		blaster_army[i].centerx = 300;
+		blaster_army[i].centery = 20 + 20 * i;
+		blaster_army[i].rotation = 90;
+		blaster_army[i].frameCount = 0;
+	}
+    
+
+    int bounds_unlimited[4] = {0, 0, 360, 240};
+    int bounds_default[4] = {123, 116, 199, 192};
+
+    draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
+
+    swap_buffers();
+
+    draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
+
+    swap_buffers();
+	
+	struct Bone bone_army[40];
+
+    // loop to create the bones for the sin wave intro attack.
+    // gap between top bone and bottom bone is 38/2 = 19 pixels
+    for (int i = 0; i < 20; i++) {
+
+		int sinValue = sin((double)i / 3) * 20;
+		
+        bone_army[i].posx[0] = 124 - 14 * i << 8;
+        bone_army[i].posx[1] = 124 - 14 * i << 8;
+        bone_army[i].posx[2] = 124 - 14 * i << 8;
+        bone_army[i].posy[0] = 117 << 8;
+        bone_army[i].posy[1] = 117 << 8;
+        bone_army[i].posy[2] = 117 << 8;
+        bone_army[i].length = 20 + sinValue;
+        bone_army[i].velox = 512;
+        bone_army[i].veloy = 0;
+        bone_army[i].color = 0xFFFF;
+
+        int posy = 117 + (int)(41 + sinValue) << 8;
+
+        bone_army[i+20].posx[0] = 124 - 14 * i << 8;
+        bone_army[i+20].posx[1] = 124 - 14 * i << 8;
+        bone_army[i+20].posx[2] = 124 - 14 * i << 8;
+        bone_army[i+20].posy[0] = posy;
+        bone_army[i+20].posy[1] = posy;
+        bone_army[i+20].posy[2] = posy;
+        bone_army[i+20].length = 186- (posy >> 8);
+        bone_army[i+20].velox = 512;
+        bone_army[i+20].veloy = 0;
+        bone_army[i+20].color = 0xFFFF;
+    }
+	
+	
+
+    while (1) {
+
+        for (int i = 0; i < 40; i++) {
+            draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
+        }
+
+        for (int i = 0; i < 4; i++) {
+			draw_any_blaster(&blaster_army[i], bounds_default);
+		}
+
+        draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
+        draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(200, 113, 202, 195, 0xFFFF, bounds_unlimited);
+
+        for (int i = 0; i < 40; i++) {
+			if(bone_army[i].posx[0] >= 210 << 8) {
+				update_pos(-300 << 8, bone_army[i].posx);
+			} else {
+				update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
+			}
+			draw_bone(bone_army[i].posx[0] >> 8, bone_army[i].posy[0] >> 8, bone_army[i].length,0xFFFF, bounds_default); //draw new one
+        }
+		
+        swap_buffers();
+    }
+}
+// END FILE: stage_1.c
 

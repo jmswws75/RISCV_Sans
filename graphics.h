@@ -17,8 +17,6 @@ struct Bone {
 };
 
 struct blaster {
-    int posx;
-    int posy;
     int centerx;
     int centery;
     int size;
@@ -26,6 +24,12 @@ struct blaster {
     // the blaster will stay on screen for 100 frames total.
     // it takes 20 + 48 frames to appear before firing. after it fires, it will stay there for 80 frames.
     int frameCount;
+
+    // these are for storing the beams location, you dont need to initialize them!
+    int beam_min_y;
+    int beam_max_y;
+    int beam_min_x[240];
+    int beam_max_x[240];
 };
 
 struct platform {
