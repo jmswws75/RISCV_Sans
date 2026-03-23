@@ -56,9 +56,9 @@ void run_stage_0() {
     // substage1: bottom bone
     struct Bone bone_army_1[20];
     for (int i = 0; i < 20; i++) {
-        bone_army_1[i].posx[0] = 199 - 7 * i << 8;
-        bone_army_1[i].posx[1] = 199 - 7 * i << 8;
-        bone_army_1[i].posx[2] = 199 - 7 * i << 8;
+        bone_army_1[i].posx[0] = (199 - 7 * i) << 8;
+        bone_army_1[i].posx[1] = (199 - 7 * i )<< 8;
+        bone_army_1[i].posx[2] = (199 - 7 * i )<< 8;
         bone_army_1[i].posy[0] = 196 << 8;
         bone_army_1[i].posy[1] = 196 << 8;
         bone_army_1[i].posy[2] = 196 << 8;
@@ -75,7 +75,7 @@ void run_stage_0() {
         }
 
         for (int i = 0; i < 20; i++) {
-            draw_bone(bone_army_1[i].posx[1] >> 8, bone_army_1[i].posy[1] >> 8, bone_army_1[i].length,0x0000, bounds_default); //erase old one
+            draw_bone(&bone_army_1[i], 1, 0x0000, bounds_default); //erase old one
         }
 
         for (int i = 0; i < 20; i++) {
@@ -84,7 +84,7 @@ void run_stage_0() {
             } else {
                 update_pos(bone_army_1[i].posy[0] + bone_army_1[i].veloy, bone_army_1[i].posy); 
             }
-            draw_bone(bone_army_1[i].posx[0] >> 8, bone_army_1[i].posy[0] >> 8, bone_army_1[i].length,0xFFFF, bounds_default); //draw new one
+            draw_bone(&bone_army_1[i], 0, 0xffff, bounds_default); //draw new one
         }
 
         swap_buffers();
@@ -94,11 +94,15 @@ void run_stage_0() {
 
     // erase all bones from substage1
     for (int i = 0; i < 20; i++) {
-        draw_bone(bone_army_1[i].posx[0] >> 8, bone_army_1[i].posy[0] >> 8, bone_army_1[i].length,0x0000, bounds_default); //erase old one
+		draw_bone(&bone_army_1[i], 0, 0x0000, bounds_default); //erase old one
+		draw_bone(&bone_army_1[i], 1, 0x0000, bounds_default); //erase old one
+        draw_bone(&bone_army_1[i], 2, 0x0000, bounds_default); //erase old one
     }
     swap_buffers();
     for (int i = 0; i < 20; i++) {
-        draw_bone(bone_army_1[i].posx[0] >> 8, bone_army_1[i].posy[0] >> 8, bone_army_1[i].length,0x0000, bounds_default); //erase old one
+		draw_bone(&bone_army_1[i], 0, 0x0000, bounds_default); //erase old one
+		draw_bone(&bone_army_1[i], 1, 0x0000, bounds_default); //erase old one
+        draw_bone(&bone_army_1[i], 2, 0x0000, bounds_default); //erase old one
     }
     swap_buffers();
 
@@ -112,9 +116,9 @@ void run_stage_0() {
 
 		int sinValue = sin( (double)i / 3) * 20;
 		
-        bone_army[i].posx[0] = 60 - 14 * i << 8;
-        bone_army[i].posx[1] = 60 - 14 * i << 8;
-        bone_army[i].posx[2] = 60 - 14 * i << 8;
+        bone_army[i].posx[0] = (60 - 14 * i) << 8;
+        bone_army[i].posx[1] = (60 - 14 * i) << 8;
+        bone_army[i].posx[2] = (60 - 14 * i) << 8;
         bone_army[i].posy[0] = 117 << 8;
         bone_army[i].posy[1] = 117 << 8;
         bone_army[i].posy[2] = 117 << 8;
@@ -125,9 +129,9 @@ void run_stage_0() {
 
         int posy = 117 + (int)(41 + sinValue) << 8;
 
-        bone_army[i+20].posx[0] = 60 - 14 * i << 8;
-        bone_army[i+20].posx[1] = 60 - 14 * i << 8;
-        bone_army[i+20].posx[2] = 60 - 14 * i << 8;
+        bone_army[i+20].posx[0] = (60 - 14 * i) << 8;
+        bone_army[i+20].posx[1] = (60 - 14 * i) << 8;
+        bone_army[i+20].posx[2] = (60 - 14 * i) << 8;
         bone_army[i+20].posy[0] = posy;
         bone_army[i+20].posy[1] = posy;
         bone_army[i+20].posy[2] = posy;
@@ -140,12 +144,12 @@ void run_stage_0() {
     while (1) {
         
         for (int i = 0; i < 40; i++) {
-            draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
+            draw_bone(&bone_army[i], 1, 0x0000, bounds_default); //erase old one
         }
 
         for (int i = 0; i < 40; i++) {
             update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
-            draw_bone(bone_army[i].posx[0] >> 8, bone_army[i].posy[0] >> 8, bone_army[i].length,0xFFFF, bounds_default); //draw new one
+            draw_bone(&bone_army[i], 0, 0xffff, bounds_default); //draw new one
         }
 
         if(bone_army[39].posx[0] >= 240 << 8) {
@@ -155,6 +159,8 @@ void run_stage_0() {
         swap_buffers();
 
     }
+
+    frameCount = 0;
 
     // substage 3: blasters
     struct blaster blaster_army_0[4];
@@ -234,8 +240,10 @@ void run_stage_0() {
     blaster_army_3[1].frameCount = -600;
 
     while (1) {
+
+        if (frameCount > 800){ break; }
 		
-		for (int i = 0; i < 4; i++) {
+ 		for (int i = 0; i < 4; i++) {
 			draw_any_blaster(&blaster_army_0[i], bounds_unlimited);
 			draw_any_blaster(&blaster_army_1[i], bounds_unlimited);
 			draw_any_blaster(&blaster_army_2[i], bounds_unlimited);
@@ -251,5 +259,7 @@ void run_stage_0() {
 
         
         swap_buffers();
+        frameCount++;
     }
+
 }

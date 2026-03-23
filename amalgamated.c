@@ -47,13 +47,27 @@ void wait_for_vsync();
 void plot_pixel(int x, int y, short int line_color);
 void update_pos(int newPos, int pos[]);
 void draw_blaster();
-void draw_bone(int x0, int y0, int length, short int color, int bounds[4]);
+void draw_bone(struct Bone *bone_ptr, short int ind, short int color, int bounds[4]);
 void draw_line(int x0, int y0, int x1, int y1, short int color);
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]);
 void clear_screen();
 
 #endif
 // END FILE: graphics.h
+
+
+// ==================================================
+// BEGIN FILE: movement.h
+// ==================================================
+
+// #ifndef MOVEMENT_H
+// #define MOVEMENT_2_H
+
+// void movement();
+// void draw_player(int x, int y, short int color);
+
+// #endif
+// END FILE: movement.h
 
 
 // ==================================================
@@ -83,6 +97,19 @@ void run_stage_1();
 
 
 // ==================================================
+// BEGIN FILE: stage_2.h
+// ==================================================
+
+#ifndef STAGE_2_H
+#define STAGE_2_H
+
+void run_stage_2();
+
+#endif
+// END FILE: stage_2.h
+
+
+// ==================================================
 // BEGIN FILE: Bone.c
 // ==================================================
 
@@ -96,6 +123,8 @@ void run_stage_1();
 int main(void)
 {
     run_stage_0();
+
+    run_stage_2();
     
 }
 
@@ -535,7 +564,10 @@ void update_pos(int newPos, int pos[]){
 // the coordinate starts at the top left, then goes down and right.
 // for every bone, there are 3 parts: the top, bottom, and middle. the top and the bottom represents the "joint" of the bone, while the middle part is the flat part.
 // the length in the function represents how long the middle part is. the smallest length is 1. inputting anything smaller than a 1 as length will result in a bone of length 1.
-void draw_bone(int x0, int y0, int length, short int color, int bounds[4]) {
+void draw_bone(struct Bone *bone_ptr, short int ind, short int color, int bounds[4]) {
+    int x0 = (bone_ptr->posx[ind]) >> 8;
+    int y0 = (bone_ptr->posy[ind]) >> 8;
+    int length = bone_ptr->length;
     draw_rectangle(x0, y0, x0+1, y0+2, color, bounds);
     draw_rectangle(x0+3, y0, x0+4, y0+2, color, bounds);
     draw_rectangle(x0, y0+2+length+1, x0+1, y0+4+length+1, color, bounds);
@@ -563,63 +595,39 @@ void clear_screen(){
 
 // #include <stdbool.h>
 // #include <stdlib.h>
+// #include "graphics.h"
 
 // #define PS2_BASE 0xFF200100
 
-// volatile int pixel_buffer_start;
-// volatile int *pixel_ctrl_ptr = (int *)0xFF203020;
 // volatile int *PS2_ptr = (int *)PS2_BASE;
-
-// void plot_pixel(int x, int y, short int color);
-// void clear_screen(void);
-// void draw_rectangle(int x0, int y0, int x1, int y1, short int color);
-// void draw_player(int x, int y, short int color);
-
-// void plot_pixel(int x, int y, short int color)
-// {
-//     volatile short int *one_pixel_address;
-//     one_pixel_address = (volatile short int *)(pixel_buffer_start + (y << 10) + (x << 1));
-//     *one_pixel_address = color;
-// }
-
-// void clear_screen(void)
-// {
-//     int x, y;
-//     for (x = 0; x < 320; x++) {
-//         for (y = 0; y < 240; y++) {
-//             plot_pixel(x, y, 0x0000);
-//         }
-//     }
-// }
-
-// void draw_rectangle(int x0, int y0, int x1, int y1, short int color)
-// {
-//     int x, y;
-//     for (x = x0; x <= x1; x++) {
-//         for (y = y0; y <= y1; y++) {
-//             plot_pixel(x, y, color);
-//         }
-//     }
-// }
+// int bounds_unlimited[4] = {0, 0, 360, 240};
 
 // void draw_player(int x, int y, short int color)
 // {
-//     draw_rectangle(x, y, x + 1, y + 1, color);
+//     draw_rectangle(x, y, x + 1, y + 1, color, bounds_unlimited);
 // }
 
-// int main(void)
+// void movement()
 // {
-//     int x = 10;
-//     int y = 120;
-//     int old_x = x;
-//     int old_y = y;
+
+//     int x[3], y[3];
+//     for (int i = 0; i < 3) {
+//         x[i] = 10;
+//         y[i] = 120;
+//     }
 
 //     int PS2_data;
 //     int RVALID;
-//     char byte;
-//     char last_byte = 0;
+//     unsigned char byte;
 
-//     pixel_buffer_start = *pixel_ctrl_ptr;
+//     bool break_code = false;
+//     bool up_pressed = false;
+//     bool left_pressed = false;
+//     bool down_pressed = false;
+//     bool right_pressed = false;
+
+//     int move_delay = 0;
+
 //     clear_screen();
 //     draw_player(x, y, 0xFFFF);
 
@@ -628,41 +636,49 @@ void clear_screen(){
 //         old_y = y;
 
 //         while (1) {
-// 			// keep reading until buffer is empty (clears all pending input and nothing gets stuck in FIFO)
 //             PS2_data = *PS2_ptr;
-//             RVALID = PS2_data & 0x8000;	// check if new data is available
-//             if (!RVALID){	// if no data exit loop
+//             RVALID = PS2_data & 0x8000;
+//             if (!RVALID)
 //                 break;
-// 			}
 
-//             byte = PS2_data & 0xFF;	// Read the key code
-			
-// 			// Only act on real key presses not the release
-//             if (byte != (char)0xF0 && last_byte != (char)0xF0) {	// Checks that this is not a release signal, Prevents using the byte right after a release (avoid mistake)
-//                 if (byte == 0x1D) {
-//                     if (y > 0) y--;
-//                 }
-//                 else if (byte == 0x1C) {
-//                     if (x > 0) x--;
-//                 }
-//                 else if (byte == 0x1B) {
-//                     if (y < 238) y++;
-//                 }
-//                 else if (byte == 0x23) {
-//                     if (x < 318) x++;
-//                 }
+//             byte = PS2_data & 0xFF;
+
+//             if (byte == 0xE0) {
+//                 continue;
+//             } else if (byte == 0xF0) {
+//                 break_code = true;
+//                 continue;
 //             }
 
-//             last_byte = byte;
+//             if (byte == 0x1D) {          // W
+//                 up_pressed = !break_code;
+//             } else if (byte == 0x1C) {   // A
+//                 left_pressed = !break_code;
+//             } else if (byte == 0x1B) {   // S
+//                 down_pressed = !break_code;
+//             } else if (byte == 0x23) {   // D
+//                 right_pressed = !break_code;
+//             }
+
+//             break_code = false;
 //         }
 
-//         if (x != old_x || y != old_y) {	// Avoid unnecessary drawing when nothing changes
+//         move_delay++;
+//         if (move_delay > 50000) {
+//             move_delay = 0;
+
+// 			// Second condition is the boundary
+//             if (up_pressed && y > 0) y--;
+//             if (left_pressed && x > 0) x--;
+//             if (down_pressed && y < 234) y++;
+//             if (right_pressed && x < 314) x++;
+//         }
+
+//         if (x != old_x || y != old_y) {
 //             draw_player(old_x, old_y, 0x0000);
 //             draw_player(x, y, 0xFFFF);
 //         }
 //     }
-
-//     return 0;
 // }
 // END FILE: movement.c
 
@@ -729,9 +745,9 @@ void run_stage_0() {
     // substage1: bottom bone
     struct Bone bone_army_1[20];
     for (int i = 0; i < 20; i++) {
-        bone_army_1[i].posx[0] = 199 - 7 * i << 8;
-        bone_army_1[i].posx[1] = 199 - 7 * i << 8;
-        bone_army_1[i].posx[2] = 199 - 7 * i << 8;
+        bone_army_1[i].posx[0] = (199 - 7 * i) << 8;
+        bone_army_1[i].posx[1] = (199 - 7 * i )<< 8;
+        bone_army_1[i].posx[2] = (199 - 7 * i )<< 8;
         bone_army_1[i].posy[0] = 196 << 8;
         bone_army_1[i].posy[1] = 196 << 8;
         bone_army_1[i].posy[2] = 196 << 8;
@@ -748,7 +764,7 @@ void run_stage_0() {
         }
 
         for (int i = 0; i < 20; i++) {
-            draw_bone(bone_army_1[i].posx[1] >> 8, bone_army_1[i].posy[1] >> 8, bone_army_1[i].length,0x0000, bounds_default); //erase old one
+            draw_bone(&bone_army_1[i], 1, 0x0000, bounds_default); //erase old one
         }
 
         for (int i = 0; i < 20; i++) {
@@ -757,7 +773,7 @@ void run_stage_0() {
             } else {
                 update_pos(bone_army_1[i].posy[0] + bone_army_1[i].veloy, bone_army_1[i].posy); 
             }
-            draw_bone(bone_army_1[i].posx[0] >> 8, bone_army_1[i].posy[0] >> 8, bone_army_1[i].length,0xFFFF, bounds_default); //draw new one
+            draw_bone(&bone_army_1[i], 0, 0xffff, bounds_default); //draw new one
         }
 
         swap_buffers();
@@ -767,11 +783,15 @@ void run_stage_0() {
 
     // erase all bones from substage1
     for (int i = 0; i < 20; i++) {
-        draw_bone(bone_army_1[i].posx[0] >> 8, bone_army_1[i].posy[0] >> 8, bone_army_1[i].length,0x0000, bounds_default); //erase old one
+		draw_bone(&bone_army_1[i], 0, 0x0000, bounds_default); //erase old one
+		draw_bone(&bone_army_1[i], 1, 0x0000, bounds_default); //erase old one
+        draw_bone(&bone_army_1[i], 2, 0x0000, bounds_default); //erase old one
     }
     swap_buffers();
     for (int i = 0; i < 20; i++) {
-        draw_bone(bone_army_1[i].posx[0] >> 8, bone_army_1[i].posy[0] >> 8, bone_army_1[i].length,0x0000, bounds_default); //erase old one
+		draw_bone(&bone_army_1[i], 0, 0x0000, bounds_default); //erase old one
+		draw_bone(&bone_army_1[i], 1, 0x0000, bounds_default); //erase old one
+        draw_bone(&bone_army_1[i], 2, 0x0000, bounds_default); //erase old one
     }
     swap_buffers();
 
@@ -785,9 +805,9 @@ void run_stage_0() {
 
 		int sinValue = sin( (double)i / 3) * 20;
 		
-        bone_army[i].posx[0] = 60 - 14 * i << 8;
-        bone_army[i].posx[1] = 60 - 14 * i << 8;
-        bone_army[i].posx[2] = 60 - 14 * i << 8;
+        bone_army[i].posx[0] = (60 - 14 * i) << 8;
+        bone_army[i].posx[1] = (60 - 14 * i) << 8;
+        bone_army[i].posx[2] = (60 - 14 * i) << 8;
         bone_army[i].posy[0] = 117 << 8;
         bone_army[i].posy[1] = 117 << 8;
         bone_army[i].posy[2] = 117 << 8;
@@ -798,9 +818,9 @@ void run_stage_0() {
 
         int posy = 117 + (int)(41 + sinValue) << 8;
 
-        bone_army[i+20].posx[0] = 60 - 14 * i << 8;
-        bone_army[i+20].posx[1] = 60 - 14 * i << 8;
-        bone_army[i+20].posx[2] = 60 - 14 * i << 8;
+        bone_army[i+20].posx[0] = (60 - 14 * i) << 8;
+        bone_army[i+20].posx[1] = (60 - 14 * i) << 8;
+        bone_army[i+20].posx[2] = (60 - 14 * i) << 8;
         bone_army[i+20].posy[0] = posy;
         bone_army[i+20].posy[1] = posy;
         bone_army[i+20].posy[2] = posy;
@@ -813,12 +833,12 @@ void run_stage_0() {
     while (1) {
         
         for (int i = 0; i < 40; i++) {
-            draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
+            draw_bone(&bone_army[i], 1, 0x0000, bounds_default); //erase old one
         }
 
         for (int i = 0; i < 40; i++) {
             update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
-            draw_bone(bone_army[i].posx[0] >> 8, bone_army[i].posy[0] >> 8, bone_army[i].length,0xFFFF, bounds_default); //draw new one
+            draw_bone(&bone_army[i], 0, 0xffff, bounds_default); //draw new one
         }
 
         if(bone_army[39].posx[0] >= 240 << 8) {
@@ -828,6 +848,8 @@ void run_stage_0() {
         swap_buffers();
 
     }
+
+    frameCount = 0;
 
     // substage 3: blasters
     struct blaster blaster_army_0[4];
@@ -907,8 +929,10 @@ void run_stage_0() {
     blaster_army_3[1].frameCount = -600;
 
     while (1) {
+
+        if (frameCount > 800){ break; }
 		
-		for (int i = 0; i < 4; i++) {
+ 		for (int i = 0; i < 4; i++) {
 			draw_any_blaster(&blaster_army_0[i], bounds_unlimited);
 			draw_any_blaster(&blaster_army_1[i], bounds_unlimited);
 			draw_any_blaster(&blaster_army_2[i], bounds_unlimited);
@@ -924,7 +948,9 @@ void run_stage_0() {
 
         
         swap_buffers();
+        frameCount++;
     }
+
 }
 // END FILE: stage_0.c
 
@@ -1004,7 +1030,7 @@ void run_stage_1() {
     while (1) {
 
         for (int i = 0; i < 40; i++) {
-            draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
+            draw_bone(&bone_army[i], 1, 0x0000, bounds_default); //erase old one
         }
 
         for (int i = 0; i < 10; i++) {
@@ -1022,11 +1048,118 @@ void run_stage_1() {
 			} else {
 				update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
 			}
-			draw_bone(bone_army[i].posx[0] >> 8, bone_army[i].posy[0] >> 8, bone_army[i].length,0xFFFF, bounds_default); //draw new one
+			draw_bone(&bone_army[i], 0 ,0xffff, bounds_default); //draw new one
         }
 		
         swap_buffers();
     }
 }
 // END FILE: stage_1.c
+
+
+// ==================================================
+// BEGIN FILE: stage_2.c
+// ==================================================
+
+// [Amalgamator] Removed: #include "graphics.h"
+#include <math.h>
+
+void run_stage_2() {
+    struct Bone Bone_army[32];
+
+    int bounds_default[4] = {70, 129, 251, 192};
+    int bounds_unlimited[4] = {0, 0, 360, 240};
+
+    // left bones
+    for (int i = 0; i < 16; i+=2) {
+        // bottom
+        Bone_army[i].color = 0xffff;
+        Bone_army[i].length = 4;
+        Bone_army[i].posx[0] = (0 - 50 * i) << 8;
+        Bone_army[i].posx[1] = (0 - 50 * i) << 8;
+        Bone_army[i].posx[2] = (0 - 50 * i) << 8;
+        Bone_army[i].posy[0] = 183 << 8;
+        Bone_army[i].posy[1] = 183 << 8;
+        Bone_army[i].posy[2] = 183 << 8;
+        Bone_army[i].velox = 256;
+        Bone_army[i].veloy = 0;
+
+        // top
+        Bone_army[i+1].color = 0xffff;
+        Bone_army[i+1].length = 42;
+        Bone_army[i+1].posx[0] = (0 - 50 * i) << 8;
+        Bone_army[i+1].posx[1] = (0 - 50 * i) << 8;
+        Bone_army[i+1].posx[2] = (0 - 50 * i) << 8;
+        Bone_army[i+1].posy[0] = 129 << 8;
+        Bone_army[i+1].posy[1] = 129 << 8;
+        Bone_army[i+1].posy[2] = 129 << 8;
+        Bone_army[i+1].velox = 256;
+        Bone_army[i+1].veloy = 0;
+    }
+
+    // right bones
+    for (int i = 16; i < 32; i+=2) {
+        // bottom
+        Bone_army[i].color = 0xffff;
+        Bone_army[i].length = 4;
+        Bone_army[i].posx[0] = (320 + 50 * (i - 16)) << 8;
+        Bone_army[i].posx[1] = (320 + 50 * (i - 16)) << 8;
+        Bone_army[i].posx[2] = (320 + 50 * (i - 16)) << 8;
+        Bone_army[i].posy[0] = 183 << 8;
+        Bone_army[i].posy[1] = 183 << 8;
+        Bone_army[i].posy[2] = 183 << 8;
+        Bone_army[i].velox = -256;
+        Bone_army[i].veloy = 0;
+
+        // top
+        Bone_army[i+1].color = 0xffff;
+        Bone_army[i+1].length = 42;
+        Bone_army[i+1].posx[0] = (320 + 50 * (i - 16)) << 8;
+        Bone_army[i+1].posx[1] = (320 + 50 * (i - 16)) << 8;
+        Bone_army[i+1].posx[2] = (320 + 50 * (i - 16)) << 8;
+        Bone_army[i+1].posy[0] = 129 << 8;
+        Bone_army[i+1].posy[1] = 129 << 8;
+        Bone_army[i+1].posy[2] = 129 << 8;
+        Bone_army[i+1].velox = -256;
+        Bone_army[i+1].veloy = 0;
+    }
+
+    clear_screen();
+
+    draw_rectangle(67, 126, 254, 128, 0xFFFF, bounds_unlimited);
+    draw_rectangle(67, 126, 69, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
+
+    swap_buffers();
+
+    draw_rectangle(67, 126, 254, 128, 0xFFFF, bounds_unlimited);
+    draw_rectangle(67, 126, 69, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
+
+    swap_buffers();
+
+    while (1) {
+        
+        for (int i = 0; i < 32; i++) {
+            draw_bone(&Bone_army[i], 1, 0x0000, bounds_default); //erase old one
+        }
+
+        for (int i = 0; i < 32; i++) {
+            update_pos(Bone_army[i].posx[0] + Bone_army[i].velox, Bone_army[i].posx); 
+            draw_bone(&Bone_army[i], 0, 0xffff, bounds_default); //draw new one
+        }
+
+        if(Bone_army[15].posx[31] <= -1000 << 8) {
+            break;
+        }
+
+        swap_buffers();
+
+    }
+
+    
+}
+// END FILE: stage_2.c
 

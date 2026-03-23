@@ -427,7 +427,10 @@ void update_pos(int newPos, int pos[]){
 // the coordinate starts at the top left, then goes down and right.
 // for every bone, there are 3 parts: the top, bottom, and middle. the top and the bottom represents the "joint" of the bone, while the middle part is the flat part.
 // the length in the function represents how long the middle part is. the smallest length is 1. inputting anything smaller than a 1 as length will result in a bone of length 1.
-void draw_bone(int x0, int y0, int length, short int color, int bounds[4]) {
+void draw_bone(struct Bone *bone_ptr, short int ind, short int color, int bounds[4]) {
+    int x0 = (bone_ptr->posx[ind]) >> 8;
+    int y0 = (bone_ptr->posy[ind]) >> 8;
+    int length = bone_ptr->length;
     draw_rectangle(x0, y0, x0+1, y0+2, color, bounds);
     draw_rectangle(x0+3, y0, x0+4, y0+2, color, bounds);
     draw_rectangle(x0, y0+2+length+1, x0+1, y0+4+length+1, color, bounds);

@@ -69,7 +69,7 @@ void run_stage_1() {
     while (1) {
 
         for (int i = 0; i < 40; i++) {
-            draw_bone(bone_army[i].posx[1] >> 8, bone_army[i].posy[1] >> 8, bone_army[i].length,0x0000, bounds_default); //erase old one
+            draw_bone(&bone_army[i], 1, 0x0000, bounds_default); //erase old one
         }
 
         for (int i = 0; i < 10; i++) {
@@ -87,7 +87,7 @@ void run_stage_1() {
 			} else {
 				update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
 			}
-			draw_bone(bone_army[i].posx[0] >> 8, bone_army[i].posy[0] >> 8, bone_army[i].length,0xFFFF, bounds_default); //draw new one
+			draw_bone(&bone_army[i], 0 ,0xffff, bounds_default); //draw new one
         }
 		
         swap_buffers();
