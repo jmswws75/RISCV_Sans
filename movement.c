@@ -38,6 +38,7 @@ void movement(struct player *player_ptr){
     static bool up_pressed = false;
     static bool left_pressed = false;
     static bool right_pressed = false;
+    static bool down_pressed = false;
 
     int velox = 128;
 
@@ -67,6 +68,8 @@ void movement(struct player *player_ptr){
             left_pressed = !break_code;
         } else if (byte == 0x23) {   // D
             right_pressed = !break_code;
+        } else if (byte == 0x1B) {   // S
+            down_pressed = !break_code;
         }
 
         break_code = false;
