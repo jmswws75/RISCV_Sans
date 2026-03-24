@@ -105358,8 +105358,7 @@ void audio_playback_mono(const int16_t *samples, int n, int step, int replicate)
 
     for (int i = 0; i < n; i += step) {
         for (int r = 0; r < replicate; r++) {
-            while (audiop->warc == 0)
-                ;
+            while (audiop->warc == 0);
 
             int sample = ((int)samples[i]) << 16;
             audiop->ldata = sample;
