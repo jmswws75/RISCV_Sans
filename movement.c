@@ -1,87 +1,136 @@
-// #include <stdbool.h>
-// #include <stdlib.h>
-// #include "graphics.h"
+#include "graphics.h"
+#include "movement.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
-// #define PS2_BASE 0xFF200100
+#define PS2_BASE 0xFF200100
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 240
 
-// volatile int *PS2_ptr = (int *)PS2_BASE;
-// int bounds_unlimited[4] = {0, 0, 360, 240};
+volatile int *PS2_ptr = (int *)PS2_BASE;
 
-// void draw_player(int x, int y, short int color)
-// {
-//     draw_rectangle(x, y, x + 1, y + 1, color, bounds_unlimited);
-// }
+// Functions from graphics.c
+void graphics_init(void);
+void swap_buffers(void);
 
-// void movement()
-// {
+// Player size (MAKE SURE TO CHANGE THIS FOR ACTUAL GAME)
+#define PLAYER_SIZE 8
+// Player bounds
+#define PLAYER_MAX_X ((SCREEN_WIDTH - PLAYER_SIZE) << 8)
 
-//     int x[3], y[3];
-//     for (int i = 0; i < 3) {
-//         x[i] = 10;
-//         y[i] = 120;
-//     }
+void draw_player(struct player *player_ptr, short int ind, short int color)
+{
+    int bounds_unlimited[4] = {0, 0, 360, 240};
 
-//     int PS2_data;
-//     int RVALID;
-//     unsigned char byte;
+    int x = player_ptr->posx[ind] >> 8;
+    int y = player_ptr->posy[ind] >> 8;
 
-//     bool break_code = false;
-//     bool up_pressed = false;
-//     bool left_pressed = false;
-//     bool down_pressed = false;
-//     bool right_pressed = false;
+    draw_rectangle(x, y, x + 7, y + 7, color, bounds_unlimited);
+}
 
-//     int move_delay = 0;
+void movement(struct player *player_ptr){
 
-//     clear_screen();
-//     draw_player(x, y, 0xFFFF);
+    int PS2_data;
+    int RVALID;
+    unsigned char byte;
 
-//     while (1) {
-//         old_x = x;
-//         old_y = y;
+    static bool break_code = false;
+    static bool up_pressed = false;
+    static bool left_pressed = false;
+    static bool right_pressed = false;
 
-//         while (1) {
-//             PS2_data = *PS2_ptr;
-//             RVALID = PS2_data & 0x8000;
-//             if (!RVALID)
-//                 break;
+    int velox = 128;
 
-//             byte = PS2_data & 0xFF;
+	// Gravity state
+    
 
-//             if (byte == 0xE0) {
-//                 continue;
-//             } else if (byte == 0xF0) {
-//                 break_code = true;
-//                 continue;
-//             }
+    // Read everything in buffer
+    while (1) {
+        PS2_data = *PS2_ptr;
+        RVALID = PS2_data & 0x8000;
+        if (!RVALID){
+            break;
+        }
 
-//             if (byte == 0x1D) {          // W
-//                 up_pressed = !break_code;
-//             } else if (byte == 0x1C) {   // A
-//                 left_pressed = !break_code;
-//             } else if (byte == 0x1B) {   // S
-//                 down_pressed = !break_code;
-//             } else if (byte == 0x23) {   // D
-//                 right_pressed = !break_code;
-//             }
+        byte = PS2_data & 0xFF;
 
-//             break_code = false;
-//         }
+        if (byte == 0xE0) {
+            continue;
+        } else if (byte == 0xF0) {
+            break_code = true;
+            continue;
+        }
 
-//         move_delay++;
-//         if (move_delay > 50000) {
-//             move_delay = 0;
+        if (byte == 0x1D) {          // W
+            up_pressed = !break_code;
+        } else if (byte == 0x1C) {   // A
+            left_pressed = !break_code;
+        } else if (byte == 0x23) {   // D
+            right_pressed = !break_code;
+        }
 
-// 			// Second condition is the boundary
-//             if (up_pressed && y > 0) y--;
-//             if (left_pressed && x > 0) x--;
-//             if (down_pressed && y < 234) y++;
-//             if (right_pressed && x < 314) x++;
-//         }
+        break_code = false;
+    }
 
-//         if (x != old_x || y != old_y) {
-//             draw_player(old_x, old_y, 0x0000);
-//             draw_player(x, y, 0xFFFF);
-//         }
-//     }
-// }
+    int newX = player_ptr->posx[0];
+    int newY = player_ptr->posy[0];
+
+    if (player_ptr->have_gravity) {
+        if (left_pressed && newX > 0)
+            newX-=velox;
+        if (right_pressed && newX < PLAYER_MAX_X)
+            newX+=velox;
+        // Detect start of upward hold
+        if (up_pressed && !player_ptr->was_up_pressed && !player_ptr->force_fall && newY >= player_ptr->ground) {
+            player_ptr->start_y = newY;
+        }
+
+        if (!up_pressed && newY < player_ptr->ground) {
+            player_ptr->force_fall = true;
+        }
+
+        // Force fall logic
+        if (player_ptr->force_fall) {
+            if (newY < player_ptr->ground) {
+                newY += player_ptr->fall_speed;
+            } else {
+                newY = player_ptr->ground;
+                player_ptr->force_fall = false;
+            }
+        // Rising logic
+        } else if (up_pressed) {
+            if (newY > 0 && newY > player_ptr->start_y - player_ptr->max_height) {	// Check if gone too high (aka within range of jumping)
+                newY -= player_ptr->rise_speed;
+            } else {
+                player_ptr->force_fall = true;
+            }
+        // Normal falling
+        } else {
+            if (newY < player_ptr->ground) {
+                newY += player_ptr->fall_speed;
+            }
+        }
+    }
+
+    else {
+        if (left_pressed && newX > 0)
+            newX-=velox;
+        if (right_pressed && newX < PLAYER_MAX_X) {
+            newX+=velox;
+        }
+        if (up_pressed && newY < ) {
+
+        }
+    }
+    
+
+    // Guarantee that the player stays on the screen (CAN MODIFY THIS FOR THE ACTUAL GAME)
+    if (newY < 0) newY = 0;
+    if (newY > player_ptr->ground) newY = player_ptr->ground;
+
+    player_ptr->was_up_pressed = up_pressed;
+    
+    update_pos(newX, player_ptr->posx);
+    update_pos(newY, player_ptr->posy);
+
+}

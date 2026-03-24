@@ -348,7 +348,7 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
     int min_y = cy - 40; if (min_y < 0) min_y = 0;
 
 
-    for (int j = min_y; j < max_y; j++) {
+    for (int j = min_y; j < max_y; j+=4) {
 		
 		int centreDistanceY = j - cy;
 		int y_x = centreDistanceY * sinV;
@@ -359,7 +359,7 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
         int unrotated_X = (min_x - cx) * cosV + y_x;
         int unrotated_Y = -1 * (min_x - cx) * sinV + y_y;
 
-        for (int i = min_x; i < max_x; i++) {
+        for (int i = min_x; i < max_x; i+=4) {
             // calculate centre of blaster head to current pixel location
 
             int sourceX = ((unrotated_X) >> 8) + (GASTER_BLASTER_WIDTH >> 1);
@@ -372,10 +372,10 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
                     *pixel_ptr = blasterColor;
                 }
             }
-            pixel_ptr++;
+            pixel_ptr+=4;
 
-            unrotated_X += cosV;
-            unrotated_Y -= sinV;
+            unrotated_X += (cosV << 2);
+            unrotated_Y -= (sinV << 2);
         }
     }
 
@@ -397,7 +397,7 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
     }
 
     if ((frame >= 68 && frame <= 148)) {
-        for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j++) {
+        for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j+=8) {
             int xLeft = blaster_ptr->beam_min_x[j];
             int xRight = blaster_ptr->beam_max_x[j];
 
@@ -406,9 +406,9 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
 
             volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (xLeft << 1));
 
-            for (int i = xLeft; i <= xRight; i++) {
+            for (int i = xLeft; i <= xRight; i+=8) {
                 *pixel_ptr = beamColor; 
-                pixel_ptr++;            // move to the next pixel in memory
+                pixel_ptr+=8;            // move to the next pixel in memory
             }
         }
     }

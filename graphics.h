@@ -4,6 +4,8 @@
 #define GASTER_BLASTER_HEIGHT 56
 #define GASTER_BLASTER_WIDTH 22
 
+#include <stdbool.h>
+
 struct Bone {
     // the positions and velocities are stored as multiples of 256 (2^8).
     // i.e. x = 256 means x = 1. same for velocities.

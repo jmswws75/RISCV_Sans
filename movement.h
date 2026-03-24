@@ -1,7 +1,17 @@
-// #ifndef MOVEMENT_H
-// #define MOVEMENT_2_H
+#ifndef MOVEMENT_H
+#define MOVEMENT_H
 
-// void movement();
-// void draw_player(int x, int y, short int color);
+struct player{
+    int rise_speed;
+    int fall_speed;
+    int ground;
+    int max_height;
+    int posx[3];
+    int posy[3];
+    int start_y;
+    bool was_up_pressed;
+    bool force_fall;
+    bool have_gravity;
+};
 
-// #endif
+#endif

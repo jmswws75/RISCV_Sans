@@ -1,4 +1,5 @@
 #include "graphics.h"
+#include "movement.h"
 #include <math.h>
 
 int subStageCount = 0;
@@ -9,6 +10,20 @@ void run_stage_0() {
     int bounds_default[4] = {123, 116, 199, 192};
 
     graphics_init();
+
+    struct player player1;
+    player1.fall_speed = 128;
+    player1.rise_speed = 128;
+    player1.ground = 226 << 8;
+    player1.max_height = 30 << 8;
+    for (int i = 0; i < 3; i++) {
+        player1.posx[i] = 10 << 8;
+        player1.posy[i] = 120 << 8;
+    }
+    player1.start_y = 0;
+    player1.was_up_pressed = false;
+    player1.force_fall = false;
+    player1.have_gravity = false;
 
     draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
     draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
@@ -31,6 +46,11 @@ void run_stage_0() {
         if (frameCount > 30) {
             break;
         }
+
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        draw_player(&player1, 0, 0xf800);
+
         swap_buffers();
         frameCount++;
     }
@@ -39,9 +59,14 @@ void run_stage_0() {
 
     // substage0: red lines
     while (1) {
+
         if (frameCount > 9) {
             break;
         }
+
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        draw_player(&player1, 0, 0xf800);
 
         draw_rectangle_outline(124, 166, 198, 191, 0xf800);
         swap_buffers();
@@ -78,6 +103,10 @@ void run_stage_0() {
             draw_bone(&bone_army_1[i], 1, 0x0000, bounds_default); //erase old one
         }
 
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        
+
         for (int i = 0; i < 20; i++) {
             if(bone_army_1[i].posy[0] <= 166 << 8) {
                 bone_army_1[i].veloy = 0;
@@ -86,6 +115,8 @@ void run_stage_0() {
             }
             draw_bone(&bone_army_1[i], 0, 0xffff, bounds_default); //draw new one
         }
+
+        draw_player(&player1, 0, 0xf800);
 
         swap_buffers();
         frameCount++;
