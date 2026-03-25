@@ -48,11 +48,15 @@ struct platform {
 void wait_for_vsync();
 void plot_pixel(int x, int y, short int line_color);
 void update_pos(int newPos, int pos[]);
-void draw_blaster();
 void draw_bone(struct Bone *bone_ptr, short int ind, short int color, int bounds[4]);
 void draw_line(int x0, int y0, int x1, int y1, short int color);
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]);
 void clear_screen();
+void draw_number(int x, int y, int num);
+void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]);
+void draw_any_blaster_new(struct blaster *blaster_ptr, int bounds[4]);
+void store_beam(struct blaster *blaster_ptr, int verticesX[4], int verticesY[4]);
+unsigned short int read_pixel(int x, int y);
 
 #endif
 // END FILE: graphics.h
@@ -77,6 +81,7 @@ struct player{
     bool force_fall;
     bool have_gravity;
     int bounds[4];
+    int health;
 };
 
 #endif
@@ -90,7 +95,7 @@ struct player{
 #ifndef STAGE_0_H
 #define STAGE_0_H
 
-void run_stage_0();
+int run_stage_0();
 
 #endif
 // END FILE: stage_0.h
@@ -144,7 +149,11 @@ void run_stage_2();
 int main(void)
 {
 
-    run_stage_0();
+    int death = run_stage_0();
+
+    if (death == 1) {
+        clear_screen();
+    }
     
 }
 
@@ -165,65 +174,144 @@ volatile int * pixel_ctrl_ptr = (int *) 0xFF203020;
 short int Buffer1[240][512]; // 240 rows, 512 (320 + padding) columns
 short int Buffer2[240][512];
 
-// array size is 2464
-// Array size is now 1232 bytes
-static const unsigned char Gaster_Blaster[]  = {
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 
-  0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 
-  0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 
-  0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 
-  0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 
-  0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 
-  0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 
-  0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
-  0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
-  0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
-  0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-  1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
-  1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 
-  1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 
-  0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-  0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 
-  0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 
-  0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 
-  0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 
-  0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 
-  0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 
-  0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 
-  0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 
-  0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 
-  0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 
-  1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 
-  0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 
-  0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 
-  0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
-  0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 
-  0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 
-  0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 
-  0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 
-  0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 
-  0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 
-  0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+ static const unsigned char Gaster_Blaster[] = {
+
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0,
+0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0,
+0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0,
+0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0,
+0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0,
+0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0,
+0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1,
+1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1,
+1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1,
+0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0,
+0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0,
+0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0,
+0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0,
+0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0,
+0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0,
+0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0,
+0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0,
+0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0,
+0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0,
+1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1,
+0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0,
+0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0,
+0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0,
+0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0,
+0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0,
+0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,
+0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0,
+0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+}; 
+
+static const unsigned char number1[] = {
+    0, 1, 1, 1,
+    0, 0, 1, 1,
+    0, 0, 1, 1,
+    0, 0, 1, 1,
+    0, 0, 1, 1
+};
+
+static const unsigned char number2[] = {
+    1, 1, 1, 0,
+    0, 0, 1, 1,
+    0, 1, 1, 1,
+    1, 1, 1, 0,
+    1, 1, 1, 1
+};
+
+static const unsigned char number3[] = {
+    1, 1, 1, 0,
+    0, 0, 1, 0,
+    0, 1, 1, 1,
+    0, 0, 1, 1,
+    1, 1, 1, 1
+};
+
+static const unsigned char number4[] = {
+    0, 0, 1, 1,
+    1, 0, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    0, 0, 1, 1
+};
+
+static const unsigned char number5[] = {
+    1, 1, 1, 1,
+    1, 1, 0, 0,
+    1, 1, 1, 1,
+    0, 1, 1, 1,
+    1, 1, 1, 0
+};
+
+static const unsigned char number6[] = {
+    1, 1, 1, 0,
+    1, 1, 0, 0,
+    1, 1, 1, 1,
+    1, 0, 1, 1,
+    1, 1, 1, 1
+};
+
+static const unsigned char number7[] = {
+    1, 1, 1, 1,
+    0, 0, 1, 1,
+    0, 1, 1, 0,
+    1, 1, 0, 0,
+    1, 1, 0, 0
+};
+
+static const unsigned char number8[] = {
+    0, 1, 1, 1,
+    1, 1, 0, 1,
+    1, 1, 1, 1,
+    1, 0, 1, 1,
+    1, 1, 1, 1
+};
+
+static const unsigned char number9[] = {
+    1, 1, 1, 1,
+    1, 1, 0, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    0, 0, 1, 1
+};
+
+static const unsigned char number0[] = {
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 0, 1, 1,
+    1, 0, 1, 1,
+    1, 1, 1, 1
 };
 
 static const short int blasterColors[20] = {0xFFFF, // #ffffff
@@ -367,6 +455,13 @@ void plot_pixel(int x, int y, short int line_color)
     volatile short int *one_pixel_address;
     one_pixel_address = pixel_buffer_start + (y << 10) + (x << 1);
     *one_pixel_address = line_color;
+}
+
+// reads a pixel from coordinate x, y in the current buffer, returns 1 if it is not black.
+unsigned short int read_pixel(int x, int y){
+    volatile short int *one_pixel_address;
+    one_pixel_address = (volatile unsigned short int *) (pixel_buffer_start + (y << 10) + (x << 1));
+    return *one_pixel_address;
 }
 
 void draw_line(int x0, int y0, int x1, int y1, short int color){
@@ -574,6 +669,93 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
     blaster_ptr->frameCount++;
 }
 
+// void draw_any_blaster_new(struct blaster *blaster_ptr, int bounds[4]) {
+
+//     // avoid drawing for any invisible blasters
+//     if (blaster_ptr->frameCount > 148) { return; }
+// 	if (blaster_ptr->frameCount < 0) { blaster_ptr->frameCount++; return;}
+	
+//     // calculates all constants
+// 	int cx = blaster_ptr->centerx;
+// 	int cy = blaster_ptr->centery;
+// 	int frame = blaster_ptr->frameCount;
+// 	if (frame < 0) {frame = 0;}
+// 	int cosV = cosValues[blaster_ptr->rotation];
+//     int sinV = sinValues[blaster_ptr->rotation];
+	
+// 	short int blasterColor;
+	
+// 	if (frame < 20) { blasterColor = blasterColors[19-frame]; }
+// 	else if (frame >= 128 && frame < 148) { blasterColor = blasterColors[frame-128]; }
+// 	else if (frame == 148) { blasterColor = 0x0000; }
+// 	else { blasterColor = 0xffff; }
+	
+// 	short int beamColor;
+// 	if (frame >= 68 && frame <= 128) { beamColor = 0xFFFF; }
+// 	else if (frame > 128 && frame < 148) { beamColor = blasterColors[frame - 128]; }
+//     else { beamColor = 0x0000; }
+
+//     int min_x = cx - 28; if (min_x < 0) min_x = 0;
+//     int max_x = cx + 28; if (max_x > 320) max_x = 320;
+//     int max_y = cy + 28; if (max_y > 240) max_y = 240;
+//     int min_y = cy - 28; if (min_y < 0) min_y = 0;
+
+
+//     for (int j = min_y; j < max_y; j++) {
+
+//         volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (min_x << 1));
+
+//         for (int i = min_x; i < max_x; i++) {
+
+//             int sourceX = i - (cx - 28);
+//             int sourceY = j - (cy -28);
+
+//             // draw head
+//             if (Gaster_Blaster_Cache[blaster_ptr->rotation][sourceY * 56 + sourceX] == 1){
+//                 *pixel_ptr = blasterColor;
+//             }
+//             pixel_ptr++;
+//         }
+//     }
+
+//     if (frame == 68) {
+//         int halfWidth = GASTER_BLASTER_WIDTH / 2;
+//         int halfHeight = GASTER_BLASTER_HEIGHT / 2;
+//         int beamLength = 200;
+
+//         int xUnrotated[4] = { -halfWidth, halfWidth, halfWidth, -halfWidth};
+//         int yUnrotated[4] = { halfHeight, halfHeight, halfHeight + beamLength, halfHeight + beamLength};
+//         int verticesX[4], verticesY[4];
+
+//         for (int i = 0; i < 4; i++) {
+//             verticesX[i] = cx + ((xUnrotated[i] * cosV - yUnrotated[i] * sinV) >> 8);
+//             verticesY[i] = cy + ((xUnrotated[i] * sinV + yUnrotated[i] * cosV) >> 8);
+//         }
+
+//         store_beam(blaster_ptr, verticesX, verticesY);
+//     }
+
+//     if ((frame >= 68 && frame <= 148)) {
+//         for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j++) {
+//             int xLeft = blaster_ptr->beam_min_x[j];
+//             int xRight = blaster_ptr->beam_max_x[j];
+
+//             if (xLeft < 0) xLeft = 0;
+//             if (xRight >= 320) xRight = 319;
+
+//             volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (xLeft << 1));
+
+//             for (int i = xLeft; i <= xRight; i++) {
+//                 *pixel_ptr = beamColor; 
+//                 pixel_ptr++;            // move to the next pixel in memory
+//             }
+//         }
+//     }
+    
+
+//     blaster_ptr->frameCount++;
+// }
+
 void update_pos(int newPos, int pos[]){
     pos[2] = pos[1];
     pos[1] = pos[0];
@@ -595,6 +777,21 @@ void draw_bone(struct Bone *bone_ptr, short int ind, short int color, int bounds
 
     // draw the middle part
     draw_rectangle(x0+1, y0+1, x0+3, y0+2+length+2, color, bounds);
+}
+
+void draw_number(int x, int y, int num) {
+    if (num < 0 || num > 9) { return; }
+    unsigned char* lut[10] = {number0, number1, number2, number3, number4, number5, number6, number7, number8, number9};
+    unsigned char* result = lut[num];
+
+    for (int j = 0; j < 10; j++) {
+        for (int i = 0; i < 8; i++) {
+            int index = (((j/2) << 2) + (i/2));
+            if (result[index] == 1) {
+                plot_pixel(x+i, y+j, 0xffff);
+            }
+        }
+    }
 }
 
 void clear_screen(){
@@ -641,6 +838,8 @@ void draw_player(struct player *player_ptr, short int ind, short int color)
     int y = player_ptr->posy[ind] >> 8;
 
     draw_rectangle(x, y, x + 7, y + 7, color, bounds_unlimited);
+
+    
 }
 
 void movement(struct player *player_ptr){
@@ -746,7 +945,20 @@ void movement(struct player *player_ptr){
     if (newY < (player_ptr->bounds[1]) << 8) newY = player_ptr->bounds[1] << 8;
     if (newY > (player_ptr->ground)) newY = player_ptr->ground;
     if (newX < (player_ptr->bounds[0]) << 8) newX = (player_ptr->bounds[0]) << 8;
-    if (newX > (player_ptr->bounds[2] - 8) << 8) newX = (player_ptr->bounds[2] - 8) << 8;
+    if (newX > (player_ptr->bounds[2] - 7) << 8) newX = (player_ptr->bounds[2] - 7) << 8;
+
+    int playerX = player_ptr->posx[0] >> 8;
+    int playerY = player_ptr->posy[0] >> 8;
+    int size = 7;
+
+    bool overlap = false;
+    if (read_pixel(playerX, playerY) == 0xffff) {overlap = true;}
+    if (read_pixel(playerX + size, playerY) == 0xffff) {overlap = true;}
+    if (read_pixel(playerX, playerY + size) == 0xffff) {overlap = true;}
+    if (read_pixel(playerX + size, playerY + size) == 0xffff) {overlap = true;}
+    if (read_pixel(playerX + size/2, playerY + size/2) == 0xffff) {overlap = true;}
+
+    if (overlap && player_ptr->health > 0) {player_ptr->health--;}
 
     player_ptr->was_up_pressed = up_pressed;
     
@@ -767,7 +979,9 @@ void movement(struct player *player_ptr){
 
 int subStageCount = 0;
 
-void run_stage_0() {
+int run_stage_0() {
+
+    
 
     int bounds_unlimited[4] = {0, 0, 360, 240};
     int bounds_default[4] = {123, 116, 199, 192};
@@ -777,7 +991,7 @@ void run_stage_0() {
     struct player player1;
     player1.fall_speed = 128;
     player1.rise_speed = 128;
-    player1.ground = (192 - 8) << 8;
+    player1.ground = (192 - 7) << 8;
     player1.max_height = 30 << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 50 << 8;
@@ -790,6 +1004,7 @@ void run_stage_0() {
     for (int i = 0; i< 4; i++) {
         player1.bounds[i] = bounds_default[i];
     }
+    player1.health = 99;
 
     draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
     draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
@@ -815,7 +1030,12 @@ void run_stage_0() {
 
         draw_player(&player1, 1, 0x0000);
         movement(&player1);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
         draw_player(&player1, 0, 0xf800);
+
+        if (player1.health == 0) {return 1;}
 
         swap_buffers();
         frameCount++;
@@ -832,7 +1052,11 @@ void run_stage_0() {
 
         draw_player(&player1, 1, 0x0000);
         movement(&player1);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
         draw_player(&player1, 0, 0xf800);
+        if (player1.health == 0) {return 1;}
 
         draw_rectangle_outline(124, 166, 198, 191, 0xf800);
         swap_buffers();
@@ -870,8 +1094,6 @@ void run_stage_0() {
         }
 
         draw_player(&player1, 1, 0x0000);
-        movement(&player1);
-        
 
         for (int i = 0; i < 20; i++) {
             if(bone_army_1[i].posy[0] <= 166 << 8) {
@@ -881,8 +1103,13 @@ void run_stage_0() {
             }
             draw_bone(&bone_army_1[i], 0, 0xffff, bounds_default); //draw new one
         }
+        movement(&player1);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
 
         draw_player(&player1, 0, 0xf800);
+        if (player1.health == 0) {return 1;}
 
         swap_buffers();
         frameCount++;
@@ -946,13 +1173,18 @@ void run_stage_0() {
         }
 
         draw_player(&player1, 1, 0x0000);
-        movement(&player1);
-        draw_player(&player1, 0, 0xf800);
 
         for (int i = 0; i < 40; i++) {
             update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
             draw_bone(&bone_army[i], 0, 0xffff, bounds_default); //draw new one
         }
+        
+        movement(&player1);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
+        draw_player(&player1, 0, 0xf800);
+        if (player1.health == 0) {return 1;}
 
         if(bone_army[39].posx[0] >= 240 << 8) {
             break;
@@ -1048,7 +1280,12 @@ void run_stage_0() {
         draw_player(&player1, 1, 0x0000);
         movement(&player1);
         draw_player(&player1, 0, 0xf800);
-		
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
+        
+		if (player1.health == 0) {return 1;}
+
  		for (int i = 0; i < 4; i++) {
 			draw_any_blaster(&blaster_army_0[i], bounds_unlimited);
 			draw_any_blaster(&blaster_army_1[i], bounds_unlimited);
@@ -1104,6 +1341,7 @@ void run_stage_1() {
         player1.bounds[i] = bounds_default[i];
     }
     player1.have_gravity = true;
+    player1.health = 99;
 
     while (1){
 
@@ -1112,9 +1350,16 @@ void run_stage_1() {
         draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
         draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
         
-        draw_player(&player1, 1, 0x0000);
+        draw_rectangle(70, 129, 251, 192, 0xffff, bounds_unlimited);
+
 
         movement(&player1);
+        draw_player(&player1, 2, 0x0000);
+
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
+        draw_player(&player1, 0, 0xf800);
 
         draw_player(&player1, 0, 0xf800);
 

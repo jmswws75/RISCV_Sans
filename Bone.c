@@ -8,6 +8,14 @@
 int main(void)
 {
 
-    run_stage_0();
+    int death = run_stage_0();
+
+    if (death == 1) {
+        clear_screen(); 
+        swap_buffers(); 
+        
+        clear_screen(); 
+        swap_buffers();
+    }
     
 }

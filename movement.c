@@ -133,11 +133,20 @@ void movement(struct player *player_ptr){
     if (newY < (player_ptr->bounds[1]) << 8) newY = player_ptr->bounds[1] << 8;
     if (newY > (player_ptr->ground)) newY = player_ptr->ground;
     if (newX < (player_ptr->bounds[0]) << 8) newX = (player_ptr->bounds[0]) << 8;
-    if (newX > (player_ptr->bounds[2] - 8) << 8) newX = (player_ptr->bounds[2] - 8) << 8;
+    if (newX > (player_ptr->bounds[2] - 7) << 8) newX = (player_ptr->bounds[2] - 7) << 8;
 
-    if (read_pixel(player_ptr->posx[0], player_ptr->posy[0]) == 0xffff) {
-        player_ptr->health--;
-    }
+    int playerX = player_ptr->posx[0] >> 8;
+    int playerY = player_ptr->posy[0] >> 8;
+    int size = 7;
+
+    bool overlap = false;
+    if (read_pixel(playerX, playerY) == 0xffff) {overlap = true;}
+    if (read_pixel(playerX + size, playerY) == 0xffff) {overlap = true;}
+    if (read_pixel(playerX, playerY + size) == 0xffff) {overlap = true;}
+    if (read_pixel(playerX + size, playerY + size) == 0xffff) {overlap = true;}
+    if (read_pixel(playerX + size/2, playerY + size/2) == 0xffff) {overlap = true;}
+
+    if (overlap && player_ptr->health > 0) {player_ptr->health--;}
 
     player_ptr->was_up_pressed = up_pressed;
     

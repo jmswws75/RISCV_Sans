@@ -2,9 +2,9 @@
 #include "movement.h"
 #include <math.h>
 
-int subStageCount = 0;
+int run_stage_0() {
 
-void run_stage_0() {
+    
 
     int bounds_unlimited[4] = {0, 0, 360, 240};
     int bounds_default[4] = {123, 116, 199, 192};
@@ -14,7 +14,7 @@ void run_stage_0() {
     struct player player1;
     player1.fall_speed = 128;
     player1.rise_speed = 128;
-    player1.ground = (192 - 8) << 8;
+    player1.ground = (192 - 7) << 8;
     player1.max_height = 30 << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 50 << 8;
@@ -27,6 +27,7 @@ void run_stage_0() {
     for (int i = 0; i< 4; i++) {
         player1.bounds[i] = bounds_default[i];
     }
+    player1.health = 99;
 
     draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
     draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
@@ -52,7 +53,12 @@ void run_stage_0() {
 
         draw_player(&player1, 1, 0x0000);
         movement(&player1);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
         draw_player(&player1, 0, 0xf800);
+
+        if (player1.health == 0) {return 1;}
 
         swap_buffers();
         frameCount++;
@@ -69,7 +75,11 @@ void run_stage_0() {
 
         draw_player(&player1, 1, 0x0000);
         movement(&player1);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
         draw_player(&player1, 0, 0xf800);
+        if (player1.health == 0) {return 1;}
 
         draw_rectangle_outline(124, 166, 198, 191, 0xf800);
         swap_buffers();
@@ -107,8 +117,6 @@ void run_stage_0() {
         }
 
         draw_player(&player1, 1, 0x0000);
-        movement(&player1);
-        
 
         for (int i = 0; i < 20; i++) {
             if(bone_army_1[i].posy[0] <= 166 << 8) {
@@ -118,8 +126,13 @@ void run_stage_0() {
             }
             draw_bone(&bone_army_1[i], 0, 0xffff, bounds_default); //draw new one
         }
+        movement(&player1);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
 
         draw_player(&player1, 0, 0xf800);
+        if (player1.health == 0) {return 1;}
 
         swap_buffers();
         frameCount++;
@@ -183,13 +196,18 @@ void run_stage_0() {
         }
 
         draw_player(&player1, 1, 0x0000);
-        movement(&player1);
-        draw_player(&player1, 0, 0xf800);
 
         for (int i = 0; i < 40; i++) {
             update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
             draw_bone(&bone_army[i], 0, 0xffff, bounds_default); //draw new one
         }
+        
+        movement(&player1);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
+        draw_player(&player1, 0, 0xf800);
+        if (player1.health == 0) {return 1;}
 
         if(bone_army[39].posx[0] >= 240 << 8) {
             break;
@@ -285,7 +303,12 @@ void run_stage_0() {
         draw_player(&player1, 1, 0x0000);
         movement(&player1);
         draw_player(&player1, 0, 0xf800);
-		
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
+        
+		if (player1.health == 0) {return 1;}
+
  		for (int i = 0; i < 4; i++) {
 			draw_any_blaster(&blaster_army_0[i], bounds_unlimited);
 			draw_any_blaster(&blaster_army_1[i], bounds_unlimited);
@@ -303,6 +326,10 @@ void run_stage_0() {
         
         swap_buffers();
         frameCount++;
+    }
+
+    while (1) {
+        
     }
 
 }

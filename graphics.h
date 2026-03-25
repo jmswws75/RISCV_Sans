@@ -41,11 +41,14 @@ struct platform {
 void wait_for_vsync();
 void plot_pixel(int x, int y, short int line_color);
 void update_pos(int newPos, int pos[]);
-void draw_blaster();
 void draw_bone(struct Bone *bone_ptr, short int ind, short int color, int bounds[4]);
 void draw_line(int x0, int y0, int x1, int y1, short int color);
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]);
 void clear_screen();
 void draw_number(int x, int y, int num);
+void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]);
+void draw_any_blaster_new(struct blaster *blaster_ptr, int bounds[4]);
+void store_beam(struct blaster *blaster_ptr, int verticesX[4], int verticesY[4]);
+unsigned short int read_pixel(int x, int y);
 
 #endif

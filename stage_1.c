@@ -26,6 +26,7 @@ void run_stage_1() {
         player1.bounds[i] = bounds_default[i];
     }
     player1.have_gravity = true;
+    player1.health = 99;
 
     while (1){
 
@@ -34,9 +35,16 @@ void run_stage_1() {
         draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
         draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
         
-        draw_player(&player1, 1, 0x0000);
+        draw_rectangle(70, 129, 251, 192, 0xffff, bounds_unlimited);
+
 
         movement(&player1);
+        draw_player(&player1, 2, 0x0000);
+
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health%10);
+        draw_number(12,0,player1.health/10);
+        draw_player(&player1, 0, 0xf800);
 
         draw_player(&player1, 0, 0xf800);
 
