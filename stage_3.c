@@ -30,29 +30,29 @@ void run_stage_3() {
         int i = 2 * g;
 
         // each next set starts farther right so they enter one after another
-        int base_x = right_border + 213 * g;
-
-        // white bottom
+        int base_x = right_border + 213 * (g + 0.5);
+		
+		// "blue" top
         Bone_army[i].color = 0xffff;
-        Bone_army[i].length = 4;
-        Bone_army[i].posx[0] = base_x << 8;
-        Bone_army[i].posx[1] = base_x << 8;
-        Bone_army[i].posx[2] = base_x << 8;
-        Bone_army[i].posy[0] = 183 << 8;
-        Bone_army[i].posy[1] = 183 << 8;
-        Bone_army[i].posy[2] = 183 << 8;
+        Bone_army[i].length = 42;
+        Bone_army[i].posx[0] = (base_x - 65) << 8;
+        Bone_army[i].posx[1] = (base_x - 65) << 8;
+        Bone_army[i].posx[2] = (base_x - 65) << 8;
+        Bone_army[i].posy[0] = 129 << 8;
+        Bone_army[i].posy[1] = 129 << 8;
+        Bone_army[i].posy[2] = 129 << 8;
         Bone_army[i].velox = -256;
         Bone_army[i].veloy = 0;
-
-        // "blue" top
+		
+        // white bottom
         Bone_army[i + 1].color = 0xffff;
-        Bone_army[i + 1].length = 42;
-        Bone_army[i + 1].posx[0] = (base_x + 65) << 8;
-        Bone_army[i + 1].posx[1] = (base_x + 65) << 8;
-        Bone_army[i + 1].posx[2] = (base_x + 65) << 8;
-        Bone_army[i + 1].posy[0] = 129 << 8;
-        Bone_army[i + 1].posy[1] = 129 << 8;
-        Bone_army[i + 1].posy[2] = 129 << 8;
+        Bone_army[i + 1].length = 4;
+        Bone_army[i + 1].posx[0] = base_x << 8;
+        Bone_army[i + 1].posx[1] = base_x << 8;
+        Bone_army[i + 1].posx[2] = base_x << 8;
+        Bone_army[i + 1].posy[0] = 183 << 8;
+        Bone_army[i + 1].posy[1] = 183 << 8;
+        Bone_army[i + 1].posy[2] = 183 << 8;
         Bone_army[i + 1].velox = -256;
         Bone_army[i + 1].veloy = 0;
     }
@@ -79,31 +79,33 @@ void run_stage_3() {
         int i = 6 + 2 * g;
 
         // each next set starts farther left so they enter one after another
-        int base_x = left_border - 213 * g;
+        int base_x = left_border - 213 * (g + 0.5);
 
-        // white bottom
+		// "blue" top
         Bone_army[i].color = 0xffff;
-        Bone_army[i].length = 4;
-        Bone_army[i].posx[0] = base_x << 8;
-        Bone_army[i].posx[1] = base_x << 8;
-        Bone_army[i].posx[2] = base_x << 8;
-        Bone_army[i].posy[0] = 183 << 8;
-        Bone_army[i].posy[1] = 183 << 8;
-        Bone_army[i].posy[2] = 183 << 8;
+        Bone_army[i].length = 42;
+        Bone_army[i].posx[0] = (base_x + 65) << 8;
+        Bone_army[i].posx[1] = (base_x + 65) << 8;
+        Bone_army[i].posx[2] = (base_x + 65) << 8;
+        Bone_army[i].posy[0] = 129 << 8;
+        Bone_army[i].posy[1] = 129 << 8;
+        Bone_army[i].posy[2] = 129 << 8;
         Bone_army[i].velox = 256;
         Bone_army[i].veloy = 0;
-
-        // "blue" top
+		
+        // white bottom
         Bone_army[i + 1].color = 0xffff;
-        Bone_army[i + 1].length = 42;
-        Bone_army[i + 1].posx[0] = (base_x - 65) << 8;
-        Bone_army[i + 1].posx[1] = (base_x - 65) << 8;
-        Bone_army[i + 1].posx[2] = (base_x - 65) << 8;
-        Bone_army[i + 1].posy[0] = 129 << 8;
-        Bone_army[i + 1].posy[1] = 129 << 8;
-        Bone_army[i + 1].posy[2] = 129 << 8;
+        Bone_army[i + 1].length = 4;
+        Bone_army[i + 1].posx[0] = base_x << 8;
+        Bone_army[i + 1].posx[1] = base_x << 8;
+        Bone_army[i + 1].posx[2] = base_x << 8;
+        Bone_army[i + 1].posy[0] = 183 << 8;
+        Bone_army[i + 1].posy[1] = 183 << 8;
+        Bone_army[i + 1].posy[2] = 183 << 8;
         Bone_army[i + 1].velox = 256;
         Bone_army[i + 1].veloy = 0;
+
+        
     }
 
     while (1) {
