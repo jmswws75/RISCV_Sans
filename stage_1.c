@@ -4,12 +4,16 @@
 #include <stdbool.h>
 
 void run_stage_1() {
+
+    int bounds_default[4] = {70, 129, 251, 192};
+    int bounds_unlimited[4] = {0, 0, 360, 240};
+
     graphics_init();
 
     struct player player1;
     player1.fall_speed = 128;
     player1.rise_speed = 128;
-    player1.ground = 226 << 8;
+    player1.ground = (192 - 8) << 8;
     player1.max_height = 30 << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 10 << 8;
@@ -18,9 +22,18 @@ void run_stage_1() {
     player1.start_y = 0;
     player1.was_up_pressed = false;
     player1.force_fall = false;
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_default[i];
+    }
+    player1.have_gravity = true;
 
     while (1){
 
+        draw_rectangle(67, 126, 254, 128, 0xFFFF, bounds_unlimited);
+        draw_rectangle(67, 126, 69, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
+        
         draw_player(&player1, 1, 0x0000);
 
         movement(&player1);

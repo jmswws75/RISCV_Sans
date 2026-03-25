@@ -69,6 +69,86 @@ static const unsigned char Gaster_Blaster[]  = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
+static const unsigned char number1[] = {
+    0, 1, 1, 1,
+    0, 0, 1, 1,
+    0, 0, 1, 1,
+    0, 0, 1, 1,
+    0, 0, 1, 1
+};
+
+static const unsigned char number2[] = {
+    1, 1, 1, 0,
+    0, 0, 1, 1,
+    0, 1, 1, 1,
+    1, 1, 1, 0,
+    1, 1, 1, 1
+};
+
+static const unsigned char number3[] = {
+    1, 1, 1, 0,
+    0, 0, 1, 0,
+    0, 1, 1, 1,
+    0, 0, 1, 1,
+    1, 1, 1, 1
+};
+
+static const unsigned char number4[] = {
+    0, 0, 1, 1,
+    1, 0, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    0, 0, 1, 1
+};
+
+static const unsigned char number5[] = {
+    1, 1, 1, 1,
+    1, 1, 0, 0,
+    1, 1, 1, 1,
+    0, 1, 1, 1,
+    1, 1, 1, 0
+};
+
+static const unsigned char number6[] = {
+    1, 1, 1, 0,
+    1, 1, 0, 0,
+    1, 1, 1, 1,
+    1, 0, 1, 1,
+    1, 1, 1, 1
+};
+
+static const unsigned char number7[] = {
+    1, 1, 1, 1,
+    0, 0, 1, 1,
+    0, 1, 1, 0,
+    1, 1, 0, 0,
+    1, 1, 0, 0
+};
+
+static const unsigned char number8[] = {
+    0, 1, 1, 1,
+    1, 1, 0, 1,
+    1, 1, 1, 1,
+    1, 0, 1, 1,
+    1, 1, 1, 1
+};
+
+static const unsigned char number9[] = {
+    1, 1, 1, 1,
+    1, 1, 0, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    0, 0, 1, 1
+};
+
+static const unsigned char number0[] = {
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 0, 1, 1,
+    1, 0, 1, 1,
+    1, 1, 1, 1
+};
+
 static const short int blasterColors[20] = {0xFFFF, // #ffffff
     0xef9d, // #f2f2f2
     0xe71c, // #e4e4e4
@@ -210,6 +290,13 @@ void plot_pixel(int x, int y, short int line_color)
     volatile short int *one_pixel_address;
     one_pixel_address = pixel_buffer_start + (y << 10) + (x << 1);
     *one_pixel_address = line_color;
+}
+
+// reads a pixel from coordinate x, y in the current buffer, returns 1 if it is not black.
+short int read_pixel(int x, int y){
+    volatile short int *one_pixel_address;
+    one_pixel_address = pixel_buffer_start + (y << 10) + (x << 1);
+    return *one_pixel_address;
 }
 
 void draw_line(int x0, int y0, int x1, int y1, short int color){
@@ -382,7 +469,7 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
     if (frame == 68) {
         int halfWidth = GASTER_BLASTER_WIDTH / 2;
         int halfHeight = GASTER_BLASTER_HEIGHT / 2;
-        int beamLength = 80;
+        int beamLength = 200;
 
         int xUnrotated[4] = { -halfWidth, halfWidth, halfWidth, -halfWidth};
         int yUnrotated[4] = { halfHeight, halfHeight, halfHeight + beamLength, halfHeight + beamLength};
@@ -397,7 +484,7 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
     }
 
     if ((frame >= 68 && frame <= 148)) {
-        for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j+=8) {
+        for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j++) {
             int xLeft = blaster_ptr->beam_min_x[j];
             int xRight = blaster_ptr->beam_max_x[j];
 
@@ -406,9 +493,9 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
 
             volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (xLeft << 1));
 
-            for (int i = xLeft; i <= xRight; i+=8) {
+            for (int i = xLeft; i <= xRight; i++) {
                 *pixel_ptr = beamColor; 
-                pixel_ptr+=8;            // move to the next pixel in memory
+                pixel_ptr++;            // move to the next pixel in memory
             }
         }
     }
@@ -438,6 +525,19 @@ void draw_bone(struct Bone *bone_ptr, short int ind, short int color, int bounds
 
     // draw the middle part
     draw_rectangle(x0+1, y0+1, x0+3, y0+2+length+2, color, bounds);
+}
+
+void draw_number(int x, int y, int num) {
+    if (num == 0) {
+        for (int i = x; i < 4; i++) {
+            for (int j = y; j < 4; j++) {
+                if (num == 0) {
+                    plot_pixel(i, j, )
+                }
+            }
+        }
+    }
+    
 }
 
 void clear_screen(){

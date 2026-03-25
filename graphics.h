@@ -46,5 +46,6 @@ void draw_bone(struct Bone *bone_ptr, short int ind, short int color, int bounds
 void draw_line(int x0, int y0, int x1, int y1, short int color);
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]);
 void clear_screen();
+void draw_number(int x, int y, int num);
 
 #endif

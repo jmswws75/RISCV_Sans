@@ -26,6 +26,8 @@ void draw_player(struct player *player_ptr, short int ind, short int color)
     int y = player_ptr->posy[ind] >> 8;
 
     draw_rectangle(x, y, x + 7, y + 7, color, bounds_unlimited);
+
+    
 }
 
 void movement(struct player *player_ptr){
@@ -41,6 +43,7 @@ void movement(struct player *player_ptr){
     static bool down_pressed = false;
 
     int velox = 128;
+    int veloy = 128;
 
 	// Gravity state
     
@@ -121,15 +124,20 @@ void movement(struct player *player_ptr){
         if (right_pressed && newX < PLAYER_MAX_X) {
             newX+=velox;
         }
-        if (up_pressed && newY < ) {
-
-        }
+        if (up_pressed) {newY -= veloy;}
+        if (down_pressed) {newY += veloy;}
     }
     
 
     // Guarantee that the player stays on the screen (CAN MODIFY THIS FOR THE ACTUAL GAME)
-    if (newY < 0) newY = 0;
-    if (newY > player_ptr->ground) newY = player_ptr->ground;
+    if (newY < (player_ptr->bounds[1]) << 8) newY = player_ptr->bounds[1] << 8;
+    if (newY > (player_ptr->ground)) newY = player_ptr->ground;
+    if (newX < (player_ptr->bounds[0]) << 8) newX = (player_ptr->bounds[0]) << 8;
+    if (newX > (player_ptr->bounds[2] - 8) << 8) newX = (player_ptr->bounds[2] - 8) << 8;
+
+    if (read_pixel(player_ptr->posx[0], player_ptr->posy[0]) == 0xffff) {
+        player_ptr->health--;
+    }
 
     player_ptr->was_up_pressed = up_pressed;
     

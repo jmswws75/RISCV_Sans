@@ -14,16 +14,19 @@ void run_stage_0() {
     struct player player1;
     player1.fall_speed = 128;
     player1.rise_speed = 128;
-    player1.ground = 226 << 8;
+    player1.ground = (192 - 8) << 8;
     player1.max_height = 30 << 8;
     for (int i = 0; i < 3; i++) {
-        player1.posx[i] = 10 << 8;
-        player1.posy[i] = 120 << 8;
+        player1.posx[i] = 50 << 8;
+        player1.posy[i] = 150 << 8;
     }
     player1.start_y = 0;
     player1.was_up_pressed = false;
     player1.force_fall = false;
-    player1.have_gravity = false;
+    player1.have_gravity = true;
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_default[i];
+    }
 
     draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
     draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
@@ -137,6 +140,7 @@ void run_stage_0() {
     }
     swap_buffers();
 
+    player1.have_gravity = false;
 
     // substage 2: sin wave
     struct Bone bone_army[40];
@@ -177,6 +181,10 @@ void run_stage_0() {
         for (int i = 0; i < 40; i++) {
             draw_bone(&bone_army[i], 1, 0x0000, bounds_default); //erase old one
         }
+
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        draw_player(&player1, 0, 0xf800);
 
         for (int i = 0; i < 40; i++) {
             update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
@@ -220,59 +228,63 @@ void run_stage_0() {
 	blaster_army_1[0].centerx = 100;
     blaster_army_1[0].centery = 95;
 	blaster_army_1[0].rotation = 315;
-    blaster_army_1[0].frameCount = -200;
+    blaster_army_1[0].frameCount = -100;
 	
     blaster_army_1[1].centerx = 100;
     blaster_army_1[1].centery = 215;
 	blaster_army_1[1].rotation = 225;
-    blaster_army_1[1].frameCount = -200;
+    blaster_army_1[1].frameCount = -100;
 	
     blaster_army_1[2].centerx = 220;
     blaster_army_1[2].centery = 215;
 	blaster_army_1[2].rotation = 135;
-    blaster_army_1[2].frameCount = -200;
+    blaster_army_1[2].frameCount = -100;
 	
     blaster_army_1[3].centerx = 220;
     blaster_army_1[3].centery = 100;
 	blaster_army_1[3].rotation = 45;
-    blaster_army_1[3].frameCount = -200;
+    blaster_army_1[3].frameCount = -100;
 	
 	
     struct blaster blaster_army_2[4];
 	blaster_army_2[0].centerx = 135;
     blaster_army_2[0].centery = 70;
 	blaster_army_2[0].rotation = 0;
-    blaster_army_2[0].frameCount = -400;
+    blaster_army_2[0].frameCount = -200;
 	
     blaster_army_2[1].centerx = 80;
     blaster_army_2[1].centery = 128;
 	blaster_army_2[1].rotation = 270;
-    blaster_army_2[1].frameCount = -400;
+    blaster_army_2[1].frameCount = -200;
 	
     blaster_army_2[2].centerx = 187;
     blaster_army_2[2].centery = 225;
 	blaster_army_2[2].rotation = 180;
-    blaster_army_2[2].frameCount = -400;
-	
+    blaster_army_2[2].frameCount = -200;
+
     blaster_army_2[3].centerx = 235;
     blaster_army_2[3].centery = 181;
 	blaster_army_2[3].rotation = 90;
-    blaster_army_2[3].frameCount = -400;
+    blaster_army_2[3].frameCount = -200;
 	
     struct blaster blaster_army_3[2];
 	blaster_army_3[0].centerx = 90;
     blaster_army_3[0].centery = 145;
 	blaster_army_3[0].rotation = 270;
-    blaster_army_3[0].frameCount = -600;
+    blaster_army_3[0].frameCount = -300;
 	
     blaster_army_3[1].centerx = 230;
     blaster_army_3[1].centery = 160;
 	blaster_army_3[1].rotation = 90;
-    blaster_army_3[1].frameCount = -600;
+    blaster_army_3[1].frameCount = -300;
 
     while (1) {
 
         if (frameCount > 800){ break; }
+
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        draw_player(&player1, 0, 0xf800);
 		
  		for (int i = 0; i < 4; i++) {
 			draw_any_blaster(&blaster_army_0[i], bounds_unlimited);

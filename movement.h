@@ -12,6 +12,8 @@ struct player{
     bool was_up_pressed;
     bool force_fall;
     bool have_gravity;
+    int bounds[4];
+    int health;
 };
 
 #endif

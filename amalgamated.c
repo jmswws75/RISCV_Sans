@@ -75,6 +75,8 @@ struct player{
     int start_y;
     bool was_up_pressed;
     bool force_fall;
+    bool have_gravity;
+    int bounds[4];
 };
 
 #endif
@@ -121,6 +123,14 @@ void run_stage_2();
 
 
 // ==================================================
+// BEGIN FILE: stage_3.h
+// ==================================================
+
+
+// END FILE: stage_3.h
+
+
+// ==================================================
 // BEGIN FILE: Bone.c
 // ==================================================
 
@@ -134,7 +144,7 @@ void run_stage_2();
 int main(void)
 {
 
-    run_stage_1();
+    run_stage_0();
     
 }
 
@@ -529,7 +539,7 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
     if (frame == 68) {
         int halfWidth = GASTER_BLASTER_WIDTH / 2;
         int halfHeight = GASTER_BLASTER_HEIGHT / 2;
-        int beamLength = 80;
+        int beamLength = 200;
 
         int xUnrotated[4] = { -halfWidth, halfWidth, halfWidth, -halfWidth};
         int yUnrotated[4] = { halfHeight, halfHeight, halfHeight + beamLength, halfHeight + beamLength};
@@ -544,7 +554,7 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
     }
 
     if ((frame >= 68 && frame <= 148)) {
-        for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j+=8) {
+        for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j++) {
             int xLeft = blaster_ptr->beam_min_x[j];
             int xRight = blaster_ptr->beam_max_x[j];
 
@@ -553,9 +563,9 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
 
             volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (xLeft << 1));
 
-            for (int i = xLeft; i <= xRight; i+=8) {
+            for (int i = xLeft; i <= xRight; i++) {
                 *pixel_ptr = beamColor; 
-                pixel_ptr+=8;            // move to the next pixel in memory
+                pixel_ptr++;            // move to the next pixel in memory
             }
         }
     }
@@ -619,7 +629,7 @@ void graphics_init(void);
 void swap_buffers(void);
 
 // Player size (MAKE SURE TO CHANGE THIS FOR ACTUAL GAME)
-#define PLAYER_SIZE 7
+#define PLAYER_SIZE 8
 // Player bounds
 #define PLAYER_MAX_X ((SCREEN_WIDTH - PLAYER_SIZE) << 8)
 
@@ -643,8 +653,10 @@ void movement(struct player *player_ptr){
     static bool up_pressed = false;
     static bool left_pressed = false;
     static bool right_pressed = false;
+    static bool down_pressed = false;
 
     int velox = 128;
+    int veloy = 128;
 
 	// Gravity state
     
@@ -672,6 +684,8 @@ void movement(struct player *player_ptr){
             left_pressed = !break_code;
         } else if (byte == 0x23) {   // D
             right_pressed = !break_code;
+        } else if (byte == 0x1B) {   // S
+            down_pressed = !break_code;
         }
 
         break_code = false;
@@ -680,44 +694,59 @@ void movement(struct player *player_ptr){
     int newX = player_ptr->posx[0];
     int newY = player_ptr->posy[0];
 
-    if (left_pressed && newX > 0)
-        newX-=velox;
-    if (right_pressed && newX < PLAYER_MAX_X)
-        newX+=velox;
-    // Detect start of upward hold
-    if (up_pressed && !player_ptr->was_up_pressed && !player_ptr->force_fall && newY >= player_ptr->ground) {
-        player_ptr->start_y = newY;
-    }
-
-    if (!up_pressed && newY < player_ptr->ground) {
-        player_ptr->force_fall = true;
-    }
-
-    // Force fall logic
-    if (player_ptr->force_fall) {
-        if (newY < player_ptr->ground) {
-            newY += player_ptr->fall_speed;
-        } else {
-            newY = player_ptr->ground;
-            player_ptr->force_fall = false;
+    if (player_ptr->have_gravity) {
+        if (left_pressed && newX > 0)
+            newX-=velox;
+        if (right_pressed && newX < PLAYER_MAX_X)
+            newX+=velox;
+        // Detect start of upward hold
+        if (up_pressed && !player_ptr->was_up_pressed && !player_ptr->force_fall && newY >= player_ptr->ground) {
+            player_ptr->start_y = newY;
         }
-    // Rising logic
-    } else if (up_pressed) {
-        if (newY > 0 && newY > player_ptr->start_y - player_ptr->max_height) {	// Check if gone too high (aka within range of jumping)
-            newY -= player_ptr->rise_speed;
-        } else {
+
+        if (!up_pressed && newY < player_ptr->ground) {
             player_ptr->force_fall = true;
         }
-    // Normal falling
-    } else {
-        if (newY < player_ptr->ground) {
-            newY += player_ptr->fall_speed;
+
+        // Force fall logic
+        if (player_ptr->force_fall) {
+            if (newY < player_ptr->ground) {
+                newY += player_ptr->fall_speed;
+            } else {
+                newY = player_ptr->ground;
+                player_ptr->force_fall = false;
+            }
+        // Rising logic
+        } else if (up_pressed) {
+            if (newY > 0 && newY > player_ptr->start_y - player_ptr->max_height) {	// Check if gone too high (aka within range of jumping)
+                newY -= player_ptr->rise_speed;
+            } else {
+                player_ptr->force_fall = true;
+            }
+        // Normal falling
+        } else {
+            if (newY < player_ptr->ground) {
+                newY += player_ptr->fall_speed;
+            }
         }
     }
 
+    else {
+        if (left_pressed && newX > 0)
+            newX-=velox;
+        if (right_pressed && newX < PLAYER_MAX_X) {
+            newX+=velox;
+        }
+        if (up_pressed) {newY -= veloy;}
+        if (down_pressed) {newY += veloy;}
+    }
+    
+
     // Guarantee that the player stays on the screen (CAN MODIFY THIS FOR THE ACTUAL GAME)
-    if (newY < 0) newY = 0;
-    if (newY > player_ptr->ground) newY = player_ptr->ground;
+    if (newY < (player_ptr->bounds[1]) << 8) newY = player_ptr->bounds[1] << 8;
+    if (newY > (player_ptr->ground)) newY = player_ptr->ground;
+    if (newX < (player_ptr->bounds[0]) << 8) newX = (player_ptr->bounds[0]) << 8;
+    if (newX > (player_ptr->bounds[2] - 8) << 8) newX = (player_ptr->bounds[2] - 8) << 8;
 
     player_ptr->was_up_pressed = up_pressed;
     
@@ -733,6 +762,7 @@ void movement(struct player *player_ptr){
 // ==================================================
 
 // [Amalgamator] Removed: #include "graphics.h"
+// [Amalgamator] Removed: #include "movement.h"
 #include <math.h>
 
 int subStageCount = 0;
@@ -743,6 +773,23 @@ void run_stage_0() {
     int bounds_default[4] = {123, 116, 199, 192};
 
     graphics_init();
+
+    struct player player1;
+    player1.fall_speed = 128;
+    player1.rise_speed = 128;
+    player1.ground = (192 - 8) << 8;
+    player1.max_height = 30 << 8;
+    for (int i = 0; i < 3; i++) {
+        player1.posx[i] = 50 << 8;
+        player1.posy[i] = 150 << 8;
+    }
+    player1.start_y = 0;
+    player1.was_up_pressed = false;
+    player1.force_fall = false;
+    player1.have_gravity = true;
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_default[i];
+    }
 
     draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
     draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
@@ -765,6 +812,11 @@ void run_stage_0() {
         if (frameCount > 30) {
             break;
         }
+
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        draw_player(&player1, 0, 0xf800);
+
         swap_buffers();
         frameCount++;
     }
@@ -773,9 +825,14 @@ void run_stage_0() {
 
     // substage0: red lines
     while (1) {
+
         if (frameCount > 9) {
             break;
         }
+
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        draw_player(&player1, 0, 0xf800);
 
         draw_rectangle_outline(124, 166, 198, 191, 0xf800);
         swap_buffers();
@@ -812,6 +869,10 @@ void run_stage_0() {
             draw_bone(&bone_army_1[i], 1, 0x0000, bounds_default); //erase old one
         }
 
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        
+
         for (int i = 0; i < 20; i++) {
             if(bone_army_1[i].posy[0] <= 166 << 8) {
                 bone_army_1[i].veloy = 0;
@@ -820,6 +881,8 @@ void run_stage_0() {
             }
             draw_bone(&bone_army_1[i], 0, 0xffff, bounds_default); //draw new one
         }
+
+        draw_player(&player1, 0, 0xf800);
 
         swap_buffers();
         frameCount++;
@@ -840,6 +903,7 @@ void run_stage_0() {
     }
     swap_buffers();
 
+    player1.have_gravity = false;
 
     // substage 2: sin wave
     struct Bone bone_army[40];
@@ -880,6 +944,10 @@ void run_stage_0() {
         for (int i = 0; i < 40; i++) {
             draw_bone(&bone_army[i], 1, 0x0000, bounds_default); //erase old one
         }
+
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        draw_player(&player1, 0, 0xf800);
 
         for (int i = 0; i < 40; i++) {
             update_pos(bone_army[i].posx[0] + bone_army[i].velox, bone_army[i].posx); 
@@ -923,59 +991,63 @@ void run_stage_0() {
 	blaster_army_1[0].centerx = 100;
     blaster_army_1[0].centery = 95;
 	blaster_army_1[0].rotation = 315;
-    blaster_army_1[0].frameCount = -200;
+    blaster_army_1[0].frameCount = -100;
 	
     blaster_army_1[1].centerx = 100;
     blaster_army_1[1].centery = 215;
 	blaster_army_1[1].rotation = 225;
-    blaster_army_1[1].frameCount = -200;
+    blaster_army_1[1].frameCount = -100;
 	
     blaster_army_1[2].centerx = 220;
     blaster_army_1[2].centery = 215;
 	blaster_army_1[2].rotation = 135;
-    blaster_army_1[2].frameCount = -200;
+    blaster_army_1[2].frameCount = -100;
 	
     blaster_army_1[3].centerx = 220;
     blaster_army_1[3].centery = 100;
 	blaster_army_1[3].rotation = 45;
-    blaster_army_1[3].frameCount = -200;
+    blaster_army_1[3].frameCount = -100;
 	
 	
     struct blaster blaster_army_2[4];
 	blaster_army_2[0].centerx = 135;
     blaster_army_2[0].centery = 70;
 	blaster_army_2[0].rotation = 0;
-    blaster_army_2[0].frameCount = -400;
+    blaster_army_2[0].frameCount = -200;
 	
     blaster_army_2[1].centerx = 80;
     blaster_army_2[1].centery = 128;
 	blaster_army_2[1].rotation = 270;
-    blaster_army_2[1].frameCount = -400;
+    blaster_army_2[1].frameCount = -200;
 	
     blaster_army_2[2].centerx = 187;
     blaster_army_2[2].centery = 225;
 	blaster_army_2[2].rotation = 180;
-    blaster_army_2[2].frameCount = -400;
-	
+    blaster_army_2[2].frameCount = -200;
+
     blaster_army_2[3].centerx = 235;
     blaster_army_2[3].centery = 181;
 	blaster_army_2[3].rotation = 90;
-    blaster_army_2[3].frameCount = -400;
+    blaster_army_2[3].frameCount = -200;
 	
     struct blaster blaster_army_3[2];
 	blaster_army_3[0].centerx = 90;
     blaster_army_3[0].centery = 145;
 	blaster_army_3[0].rotation = 270;
-    blaster_army_3[0].frameCount = -600;
+    blaster_army_3[0].frameCount = -300;
 	
     blaster_army_3[1].centerx = 230;
     blaster_army_3[1].centery = 160;
 	blaster_army_3[1].rotation = 90;
-    blaster_army_3[1].frameCount = -600;
+    blaster_army_3[1].frameCount = -300;
 
     while (1) {
 
         if (frameCount > 800){ break; }
+
+        draw_player(&player1, 1, 0x0000);
+        movement(&player1);
+        draw_player(&player1, 0, 0xf800);
 		
  		for (int i = 0; i < 4; i++) {
 			draw_any_blaster(&blaster_army_0[i], bounds_unlimited);
@@ -1010,12 +1082,16 @@ void run_stage_0() {
 #include <stdbool.h>
 
 void run_stage_1() {
+
+    int bounds_default[4] = {70, 129, 251, 192};
+    int bounds_unlimited[4] = {0, 0, 360, 240};
+
     graphics_init();
 
     struct player player1;
     player1.fall_speed = 128;
     player1.rise_speed = 128;
-    player1.ground = 226 << 8;
+    player1.ground = (192 - 8) << 8;
     player1.max_height = 30 << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 10 << 8;
@@ -1024,9 +1100,18 @@ void run_stage_1() {
     player1.start_y = 0;
     player1.was_up_pressed = false;
     player1.force_fall = false;
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_default[i];
+    }
+    player1.have_gravity = true;
 
     while (1){
 
+        draw_rectangle(67, 126, 254, 128, 0xFFFF, bounds_unlimited);
+        draw_rectangle(67, 126, 69, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
+        
         draw_player(&player1, 1, 0x0000);
 
         movement(&player1);
@@ -1147,4 +1232,12 @@ void run_stage_2() {
     
 }
 // END FILE: stage_2.c
+
+
+// ==================================================
+// BEGIN FILE: stage_3.c
+// ==================================================
+
+
+// END FILE: stage_3.c
 
