@@ -695,15 +695,9 @@ void draw_platform(struct platform *plat, int bounds[4]) {
 
     
     draw_rectangle(x, y, x + w - 1, y, top_color, bounds);  // top
-
-    // bottom
-    draw_rectangle(x, y + h - 1, x + w - 1, y + h - 1, white, bounds);
-
-    // left
-    draw_rectangle(x, y, x, y + h - 1, white, bounds);
-
-    // right
-    draw_rectangle(x + w - 1, y, x + w - 1, y + h - 1, white, bounds);
+    draw_rectangle(x, y + h - 1, x + w - 1, y + h - 1, white, bounds); // bottom
+    draw_rectangle(x, y, x, y + h - 1, white, bounds);  // left
+    draw_rectangle(x + w - 1, y, x + w - 1, y + h - 1, white, bounds);  // right
 }
 
 void update_platform(struct platform *plat) {
