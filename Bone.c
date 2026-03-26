@@ -8,14 +8,23 @@
 int main(void)
 {
     int Global_health = 99;
-    int death = run_stage_0();
 
-    if (death == 1) {
+    stage_0_label:
+    int death = run_stage_0(&Global_health);
+
+    if (death == 1) { // playear is dead
         clear_screen(); 
         swap_buffers(); 
         
         clear_screen(); 
         swap_buffers();
+
+        return 0;
+    } else if (death == 3) { // heal
+        goto stage_0_label;
     }
+
+    death = 0;
+    death = run_stage_2(&Global_health);
     
 }

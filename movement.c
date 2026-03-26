@@ -154,3 +154,96 @@ void movement(struct player *player_ptr){
     update_pos(newY, player_ptr->posy);
 
 }
+
+int interstage_movement(struct player *player_ptr) {
+    int PS2_data;
+    int RVALID;
+    unsigned char byte;
+
+    static bool break_code = false;
+    static bool up_pressed = false;
+    static bool left_pressed = false;
+    static bool right_pressed = false;
+    static bool down_pressed = false;
+
+    int velox = 128;
+    int veloy = 128;
+
+	// Gravity state
+    
+
+    // Read everything in buffer
+    while (1) {
+        PS2_data = *PS2_ptr;
+        RVALID = PS2_data & 0x8000;
+        if (!RVALID){
+            break;
+        }
+
+        byte = PS2_data & 0xFF;
+
+        if (byte == 0xE0) {
+            continue;
+        } else if (byte == 0xF0) {
+            break_code = true;
+            continue;
+        }
+
+        if (byte == 0x1D) {          // W
+            up_pressed = !break_code;
+        } else if (byte == 0x1C) {   // A
+            left_pressed = !break_code;
+        } else if (byte == 0x23) {   // D
+            right_pressed = !break_code;
+        } else if (byte == 0x1B) {   // S
+            down_pressed = !break_code;
+        }
+
+        break_code = false;
+    }
+
+    int newX = player_ptr->posx[0];
+    int newY = player_ptr->posy[0];
+
+    if (left_pressed && newX > 0)
+        newX-=velox;
+    if (right_pressed && newX < PLAYER_MAX_X) {
+        newX+=velox;
+    }
+    if (up_pressed) {newY -= veloy;}
+    if (down_pressed) {newY += veloy;}
+
+    // Guarantee that the player stays on the screen (CAN MODIFY THIS FOR THE ACTUAL GAME)
+    if (newY < (player_ptr->bounds[1]) << 8) newY = player_ptr->bounds[1] << 8;
+    if (newY > (player_ptr->ground)) newY = player_ptr->ground;
+    if (newX < (player_ptr->bounds[0]) << 8) newX = (player_ptr->bounds[0]) << 8;
+    if (newX > (player_ptr->bounds[2] - 7) << 8) newX = (player_ptr->bounds[2] - 7) << 8;
+
+    int playerX = player_ptr->posx[0] >> 8;
+    int playerY = player_ptr->posy[0] >> 8;
+    int size = 7;
+
+    bool overlap_heal = false;
+    bool overlap_fight = false;
+    if (read_pixel(playerX, playerY) == 0xfb85) {overlap_fight = true;}
+    if (read_pixel(playerX + size, playerY) == 0xfb85) {overlap_fight = true;}
+    if (read_pixel(playerX, playerY + size) == 0xfb85) {overlap_fight = true;}
+    if (read_pixel(playerX + size, playerY + size) == 0xfb85) {overlap_fight = true;}
+    if (read_pixel(playerX + size/2, playerY + size/2) == 0xfb85) {overlap_fight = true;}
+
+    if (read_pixel(playerX, playerY) == 0xbdd7) {overlap_heal = true;}
+    if (read_pixel(playerX + size, playerY) == 0xbdd7) {overlap_heal = true;}
+    if (read_pixel(playerX, playerY + size) == 0xbdd7) {overlap_heal = true;}
+    if (read_pixel(playerX + size, playerY + size) == 0xbdd7) {overlap_heal = true;}
+    if (read_pixel(playerX + size/2, playerY + size/2) == 0xbdd7) {overlap_heal = true;}
+
+    update_pos(newX, player_ptr->posx);
+    update_pos(newY, player_ptr->posy);
+
+    if (overlap_fight) {
+        return 2;
+    } else if (overlap_heal) {
+        return 3;
+    } else { return 0; }
+
+}
