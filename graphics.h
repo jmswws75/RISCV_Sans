@@ -57,6 +57,7 @@ void store_beam(struct blaster *blaster_ptr, int verticesX[4], int verticesY[4])
 unsigned short int read_pixel(int x, int y);
 
 void draw_platform(struct platform *plat, short int ind, int bounds[4]);
+void erase_platform(struct platform *plat, short int ind, int bounds[4]);
 void update_platform(struct platform *plat);
 
 #endif

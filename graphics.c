@@ -685,15 +685,31 @@ void clear_screen(){
 }
 
 void draw_platform(struct platform *plat, short int ind, int bounds[4]) {
-    int x = plat->posx[ind] >> 8;
-    int y = plat->posy[ind] >> 8;
+    int x = plat->posx[ind] >> 8;   // convert to screen pixels
+    int y = plat->posy[ind] >> 8;   // convert to screen pixels
+    // get size
     int w = plat->width;
     int h = plat->height;
 
-    draw_rectangle(x, y, x + w - 1, y, 0x3E66, bounds);  // top
+    // clear inside first
+    if (w > 2 && h > 2) {
+        draw_rectangle(x + 1, y + 1, x + w - 2, y + h - 2, 0x0000, bounds);
+    }
+
     draw_rectangle(x, y + h - 1, x + w - 1, y + h - 1, 0xFFFF, bounds);  // bottom
-    draw_rectangle(x, y, x, y + h - 1, 0xFFFF, bounds);  // left
+    draw_rectangle(x, y, x, y + h - 1, 0xFFFF, bounds);                  // left
     draw_rectangle(x + w - 1, y, x + w - 1, y + h - 1, 0xFFFF, bounds);  // right
+    draw_rectangle(x, y, x + w - 1, y, 0x3E66, bounds); // top
+}
+
+void erase_platform(struct platform *plat, short int ind, int bounds[4]) {
+    int x = plat->posx[ind] >> 8;   // convert to screen pixels
+    int y = plat->posy[ind] >> 8;   // convert to screen pixels
+    // get size
+    int w = plat->width;
+    int h = plat->height;
+
+    draw_rectangle(x, y, x + w - 1, y + h - 1, 0x0000, bounds);
 }
 
 void update_platform(struct platform *plat) {
