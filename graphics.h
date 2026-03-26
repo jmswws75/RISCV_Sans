@@ -35,13 +35,13 @@ struct blaster {
 };
 
 struct platform {
-    int x;
-    int y;
+    int posx[3];
+    int posy[3];
     int width;
     int height;
     int velox;
     int veloy;
-};;
+};
 
 void wait_for_vsync();
 void plot_pixel(int x, int y, short int line_color);
@@ -56,7 +56,8 @@ void draw_any_blaster_new(struct blaster *blaster_ptr, int bounds[4]);
 void store_beam(struct blaster *blaster_ptr, int verticesX[4], int verticesY[4]);
 unsigned short int read_pixel(int x, int y);
 
-void draw_platform(struct platform *plat, int bounds[4]);
+void draw_platform(struct platform *plat, short int ind, int bounds[4]);
+void erase_platform(struct platform *plat, short int ind, int bounds[4]);
 void update_platform(struct platform *plat);
 
 #endif
