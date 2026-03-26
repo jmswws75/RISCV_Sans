@@ -25,7 +25,7 @@ int run_stage_0(int *Global_health) {
     for (int i = 0; i< 4; i++) {
         player1.bounds[i] = bounds_default[i];
     }
-    player1.health = 99;
+    player1.health = *Global_health;
 
     draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
     draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
