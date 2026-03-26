@@ -3,7 +3,7 @@
 #include <math.h>
 #include <stdbool.h>
 
-void run_stage_1() {
+int run_stage_1(int *Global_health) {
 
     int bounds_default[4] = {70, 129, 251, 192};
     int bounds_unlimited[4] = {0, 0, 360, 240};
@@ -26,7 +26,7 @@ void run_stage_1() {
         player1.bounds[i] = bounds_default[i];
     }
     player1.have_gravity = true;
-    player1.health = 99;
+    player1.health = *Global_health;
 
     while (1){
 

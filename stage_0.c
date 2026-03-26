@@ -2,7 +2,7 @@
 #include "movement.h"
 #include <math.h>
 
-int run_stage_0() {
+int run_stage_0(int *Global_health) {
 
     int bounds_unlimited[4] = {0, 0, 360, 240};
     int bounds_default[4] = {123, 116, 199, 192};
@@ -52,8 +52,8 @@ int run_stage_0() {
         draw_player(&player1, 1, 0x0000);
         movement(&player1);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
-        draw_number(0,0,player1.health%10);
-        draw_number(12,0,player1.health/10);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
         draw_player(&player1, 0, 0xf800);
 
         if (player1.health == 0) {return 1;}
@@ -74,8 +74,8 @@ int run_stage_0() {
         draw_player(&player1, 1, 0x0000);
         movement(&player1);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
-        draw_number(0,0,player1.health%10);
-        draw_number(12,0,player1.health/10);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
         draw_player(&player1, 0, 0xf800);
         if (player1.health == 0) {return 1;}
 
@@ -126,11 +126,11 @@ int run_stage_0() {
         }
         movement(&player1);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
-        draw_number(0,0,player1.health%10);
-        draw_number(12,0,player1.health/10);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
 
         draw_player(&player1, 0, 0xf800);
-        if (player1.health == 0) {return 1;}
+        // if (player1.health == 0) {return 1;}
 
         swap_buffers();
         frameCount++;
@@ -202,10 +202,10 @@ int run_stage_0() {
         
         movement(&player1);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
-        draw_number(0,0,player1.health%10);
-        draw_number(12,0,player1.health/10);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
         draw_player(&player1, 0, 0xf800);
-        if (player1.health == 0) {return 1;}
+        // if (player1.health == 0) {return 1;}
 
         if(bone_army[39].posx[0] >= 240 << 8) {
             break;
@@ -299,13 +299,9 @@ int run_stage_0() {
         if (frameCount > 800){ break; }
 
         draw_player(&player1, 1, 0x0000);
-        movement(&player1);
-        draw_player(&player1, 0, 0xf800);
-        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
-        draw_number(0,0,player1.health/10);
-        draw_number(12,0,player1.health%10);
         
-		if (player1.health == 0) {return 1;}
+        
+		// if (player1.health == 0) {return 1;}
 
  		for (int i = 0; i < 4; i++) {
 			draw_any_blaster(&blaster_army_0[i], bounds_unlimited);
@@ -316,6 +312,12 @@ int run_stage_0() {
 		draw_any_blaster(&blaster_army_3[0], bounds_unlimited);
 		draw_any_blaster(&blaster_army_3[1], bounds_unlimited);
 		
+        movement(&player1);
+        draw_player(&player1, 0, 0xf800);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
+
         draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
         draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
         draw_rectangle(120, 193, 202, 195, 0xFFFF, bounds_unlimited);
@@ -326,8 +328,42 @@ int run_stage_0() {
         frameCount++;
     }
 
+    *Global_health = player1.health;
+
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_unlimited[i];
+    }
+
+    clear_screen();
+    swap_buffers();
+    clear_screen();
+
+    update_pos(160 << 8, player1.posx);
+    update_pos(120 << 8, player1.posy);
+
     while (1) {
+
         
+
+        draw_player(&player1, 1, 0x0000);
+        int result = interstage_movement(&player1);
+        draw_player(&player1, 0, 0xf800);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
+
+        draw_fight_button(100, 180);
+        draw_iteam_button(200, 180);
+
+        if (result == 2) {
+            return 2; // player chooses to fight
+        } else if (result == 3) {
+            *Global_health += 50;
+            if (*Global_health > 99) {*Global_health = 99;}
+            return 3; // player chooses to heal
+        }
+
+        swap_buffers();
     }
 
 }
