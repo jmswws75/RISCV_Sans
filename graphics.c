@@ -684,3 +684,29 @@ void clear_screen(){
     }
 }
 
+void draw_platform(struct platform *plat, int bounds[4]) {
+    int x = plat->x;
+    int y = plat->y;
+    int w = plat->width;
+    int h = plat->height;
+
+    short int white = 0xFFFF;
+    short int top_color = 0x3E66;   // close to #3f5f32 in RGB565
+
+    
+    draw_rectangle(x, y, x + w - 1, y, top_color, bounds);  // top
+
+    // bottom
+    draw_rectangle(x, y + h - 1, x + w - 1, y + h - 1, white, bounds);
+
+    // left
+    draw_rectangle(x, y, x, y + h - 1, white, bounds);
+
+    // right
+    draw_rectangle(x + w - 1, y, x + w - 1, y + h - 1, white, bounds);
+}
+
+void update_platform(struct platform *plat) {
+    plat->x += plat->velox;
+    plat->y += plat->veloy;
+}
