@@ -4,8 +4,6 @@
 
 int run_stage_0() {
 
-    
-
     int bounds_unlimited[4] = {0, 0, 360, 240};
     int bounds_default[4] = {123, 116, 199, 192};
 

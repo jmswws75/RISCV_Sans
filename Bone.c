@@ -7,7 +7,7 @@
 
 int main(void)
 {
-
+    int Global_health = 99;
     int death = run_stage_0();
 
     if (death == 1) {
