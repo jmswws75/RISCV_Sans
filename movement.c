@@ -1,3 +1,9 @@
+/*
+TODO: 
+revamp gravity
+make collision logic for platforms.
+*/
+
 #include "graphics.h"
 #include "movement.h"
 #include <stdbool.h>
@@ -42,7 +48,7 @@ void movement(struct player *player_ptr){
     static bool right_pressed = false;
     static bool down_pressed = false;
 
-    int velox = 128;
+    int velox = 512;
     int veloy = 128;
 
 	// Gravity state
@@ -81,44 +87,37 @@ void movement(struct player *player_ptr){
     int newX = player_ptr->posx[0];
     int newY = player_ptr->posy[0];
 
+    int playerX = player_ptr->posx[0] >> 8;
+    int playerY = player_ptr->posy[0] >> 8;
+    int size = 7;
+
     if (player_ptr->have_gravity) {
         if (left_pressed && newX > 0)
             newX-=velox;
         if (right_pressed && newX < PLAYER_MAX_X)
             newX+=velox;
-        // Detect start of upward hold
-        if (up_pressed && !player_ptr->was_up_pressed && !player_ptr->force_fall && newY >= player_ptr->ground) {
-            player_ptr->start_y = newY;
+        
+        player_ptr->veloY += player_ptr->gravity; // default gravity increase
+
+        if (up_pressed && !player_ptr->was_up_pressed && newY >= player_ptr->ground) { // apply initial bust force
+            player_ptr->veloY = -player_ptr->burst_force; 
+        }
+        if (!up_pressed && player_ptr->veloY < 0) { // release w
+            player_ptr->veloY = player_ptr->veloY / 2;
+        } 
+
+
+        newY += player_ptr->veloY;
+
+
+        if (newY >= player_ptr->ground) {
+            newY = player_ptr->ground;
+            player_ptr->veloY = 0;
         }
 
-        if (!up_pressed && newY < player_ptr->ground) {
-            player_ptr->force_fall = true;
-        }
-
-        // Force fall logic
-        if (player_ptr->force_fall) {
-            if (newY < player_ptr->ground) {
-                newY += player_ptr->fall_speed;
-            } else {
-                newY = player_ptr->ground;
-                player_ptr->force_fall = false;
-            }
-        // Rising logic
-        } else if (up_pressed) {
-            if (newY > 0 && newY > player_ptr->start_y - player_ptr->max_height) {	// Check if gone too high (aka within range of jumping)
-                newY -= player_ptr->rise_speed;
-            } else {
-                player_ptr->force_fall = true;
-            }
-        // Normal falling
-        } else {
-            if (newY < player_ptr->ground) {
-                newY += player_ptr->fall_speed;
-            }
-        }
     }
 
-    else {
+    else { // no gravity
         if (left_pressed && newX > 0)
             newX-=velox;
         if (right_pressed && newX < PLAYER_MAX_X) {
@@ -134,10 +133,6 @@ void movement(struct player *player_ptr){
     if (newY > (player_ptr->ground)) newY = player_ptr->ground;
     if (newX < (player_ptr->bounds[0]) << 8) newX = (player_ptr->bounds[0]) << 8;
     if (newX > (player_ptr->bounds[2] - 7) << 8) newX = (player_ptr->bounds[2] - 7) << 8;
-
-    int playerX = player_ptr->posx[0] >> 8;
-    int playerY = player_ptr->posy[0] >> 8;
-    int size = 7;
 
     bool overlap = false;
     if (read_pixel(playerX, playerY) == 0xffff) {overlap = true;}

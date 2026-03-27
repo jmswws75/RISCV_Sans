@@ -1,4 +1,5 @@
 #include <math.h>
+#include "graphics.h"
 
 void run_stage_3() {
     struct Bone Bone_army[12];

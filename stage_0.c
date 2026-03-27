@@ -10,18 +10,14 @@ int run_stage_0(int *Global_health) {
     graphics_init();
 
     struct player player1;
-    player1.fall_speed = 128;
-    player1.rise_speed = 128;
     player1.ground = (192 - 7) << 8;
-    player1.max_height = 30 << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 50 << 8;
         player1.posy[i] = 150 << 8;
     }
-    player1.start_y = 0;
     player1.was_up_pressed = false;
-    player1.force_fall = false;
     player1.have_gravity = true;
+    
     for (int i = 0; i< 4; i++) {
         player1.bounds[i] = bounds_default[i];
     }

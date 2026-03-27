@@ -696,9 +696,9 @@ void draw_platform(struct platform *plat, short int ind, int bounds[4]) {
         draw_rectangle(x + 1, y + 1, x + w - 2, y + h - 2, 0x0000, bounds);
     }
 
-    draw_rectangle(x, y + h - 1, x + w - 1, y + h - 1, 0xFFFF, bounds);  // bottom
-    draw_rectangle(x, y, x, y + h - 1, 0xFFFF, bounds);                  // left
-    draw_rectangle(x + w - 1, y, x + w - 1, y + h - 1, 0xFFFF, bounds);  // right
+    draw_rectangle(x, y + h - 1, x + w - 1, y + h - 1, 0xf7be, bounds);  // bottom
+    draw_rectangle(x, y, x, y + h - 1, 0xf7be, bounds);                  // left
+    draw_rectangle(x + w - 1, y, x + w - 1, y + h - 1, 0xf7be, bounds);  // right
     draw_rectangle(x, y, x + w - 1, y, 0x3E66, bounds); // top
 }
 

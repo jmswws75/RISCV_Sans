@@ -11,22 +11,20 @@ int run_stage_1(int *Global_health) {
     graphics_init();
 
     struct player player1;
-    player1.fall_speed = 128;
-    player1.rise_speed = 128;
     player1.ground = (192 - 8) << 8;
-    player1.max_height = 30 << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 10 << 8;
         player1.posy[i] = 120 << 8;
     }
-    player1.start_y = 0;
     player1.was_up_pressed = false;
-    player1.force_fall = false;
     for (int i = 0; i< 4; i++) {
         player1.bounds[i] = bounds_default[i];
     }
     player1.have_gravity = true;
-    player1.health = *Global_health;
+    player1.health = 99;
+    player1.gravity = 16;
+    player1.veloY = 0;
+    player1.burst_force = 500;
 
     while (1){
 
@@ -34,9 +32,6 @@ int run_stage_1(int *Global_health) {
         draw_rectangle(67, 126, 69, 195, 0xFFFF, bounds_unlimited);
         draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
         draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
-        
-        draw_rectangle(70, 129, 251, 192, 0xffff, bounds_unlimited);
-
 
         movement(&player1);
         draw_player(&player1, 2, 0x0000);
@@ -48,7 +43,22 @@ int run_stage_1(int *Global_health) {
 
         draw_player(&player1, 0, 0xf800);
 
+        struct platform plat;
+        for (int i = 0; i < 3; i ++) {
+            plat.posx[i] = 80 << 8;
+            plat.posy[i] = 180 << 8;
+        }
+        plat.height = 4;
+        plat.width = 10;
+
+        plat.velox = 0;
+        plat.veloy = 0;
+
+        draw_platform(&plat, 0, bounds_default);
+
 	    swap_buffers();
+
+        
     }
     
 }

@@ -9,6 +9,8 @@ int main(void)
 {
     int Global_health = 99;
 
+    run_stage_1(&Global_health);
+
     stage_0_label:
     int death = run_stage_0(&Global_health);
 

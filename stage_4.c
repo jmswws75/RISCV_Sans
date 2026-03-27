@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "graphics.h"
 
 #define NUM_SETS 5
 #define TOTAL_BONES 20
