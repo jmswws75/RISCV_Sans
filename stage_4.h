@@ -1,5 +1,5 @@
-#ifndef STAGE_3_H
-#define STAGE_3_H
+#ifndef STAGE_4_H
+#define STAGE_4_H
 
 void run_stage_4();
 
