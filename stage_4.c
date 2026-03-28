@@ -1,13 +1,10 @@
-#include <stdlib.h>
-#include "graphics.h"
-
 #define NUM_SETS 5
 #define TOTAL_BONES 20
 
 #define GAP_SIZE 26
 #define START_Y 129
 #define BOTTOM_LIMIT 186
-#define SET_SPACING 140
+#define SET_SPACING 100
 
 // change the top length of the bone to be between 4 and 33
 static int random_top_length(int previous_top_len) {
@@ -60,9 +57,9 @@ void run_stage_4() {
         int top_len = random_top_length(prev_top);
         prev_top = top_len;
 
-        // determines height of the bottom bone based on top bone
-        int max_top_len = BOTTOM_LIMIT - START_Y - GAP_SIZE - 4;    // incase top is too long (make sure that there is a gap and bottom bone is 4 in height minimum)
-        int top_len = 4 + (rand() % max_top_len);
+        // calculate where bottom bone starts
+        int bottom_y = START_Y + top_len + GAP_SIZE;
+
         int bot_len = BOTTOM_LIMIT - bottom_y;
 
         // prevent bottom bone from becoming too small
@@ -80,7 +77,7 @@ void run_stage_4() {
         Bone_army[r].posy[0] = START_Y << 8;
         Bone_army[r].posy[1] = START_Y << 8;
         Bone_army[r].posy[2] = START_Y << 8;
-        Bone_army[r].velox = -256;
+        Bone_army[r].velox = -256 * 2;
         Bone_army[r].veloy = 0;
 
         // right bottom
@@ -92,7 +89,7 @@ void run_stage_4() {
         Bone_army[r + 1].posy[0] = bottom_y << 8;
         Bone_army[r + 1].posy[1] = bottom_y << 8;
         Bone_army[r + 1].posy[2] = bottom_y << 8;
-        Bone_army[r + 1].velox = -256;
+        Bone_army[r + 1].velox = -256 * 2;
         Bone_army[r + 1].veloy = 0;
 
         // left top
@@ -104,7 +101,7 @@ void run_stage_4() {
         Bone_army[l].posy[0] = START_Y << 8;
         Bone_army[l].posy[1] = START_Y << 8;
         Bone_army[l].posy[2] = START_Y << 8;
-        Bone_army[l].velox = 256;
+        Bone_army[l].velox = 256 * 2;
         Bone_army[l].veloy = 0;
 
         // left bottom
@@ -116,7 +113,7 @@ void run_stage_4() {
         Bone_army[l + 1].posy[0] = bottom_y << 8;
         Bone_army[l + 1].posy[1] = bottom_y << 8;
         Bone_army[l + 1].posy[2] = bottom_y << 8;
-        Bone_army[l + 1].velox = 256;
+        Bone_army[l + 1].velox = 256 * 2;
         Bone_army[l + 1].veloy = 0;
     }
 
