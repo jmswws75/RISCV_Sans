@@ -31,12 +31,12 @@ void draw_player(struct player *player_ptr, short int ind, short int color)
     int x = player_ptr->posx[ind] >> 8;
     int y = player_ptr->posy[ind] >> 8;
 
-    draw_rectangle(x, y, x + 7, y + 7, color, bounds_unlimited);
+    draw_rectangle(x, y, x + 5, y + 5, color, bounds_unlimited);
 
     
 }
 
-void movement(struct player *player_ptr){
+void movement(struct player *player_ptr, struct platform *platforms_ptr, int numPlatforms){
 
     int PS2_data;
     int RVALID;
@@ -89,9 +89,11 @@ void movement(struct player *player_ptr){
 
     int playerX = player_ptr->posx[0] >> 8;
     int playerY = player_ptr->posy[0] >> 8;
-    int size = 7;
+    int size = 5;
 
     if (player_ptr->have_gravity) {
+
+        // x direction movement
         if (left_pressed && newX > 0)
             newX-=velox;
         if (right_pressed && newX < PLAYER_MAX_X)
@@ -132,7 +134,7 @@ void movement(struct player *player_ptr){
     if (newY < (player_ptr->bounds[1]) << 8) newY = player_ptr->bounds[1] << 8;
     if (newY > (player_ptr->ground)) newY = player_ptr->ground;
     if (newX < (player_ptr->bounds[0]) << 8) newX = (player_ptr->bounds[0]) << 8;
-    if (newX > (player_ptr->bounds[2] - 7) << 8) newX = (player_ptr->bounds[2] - 7) << 8;
+    if (newX > (player_ptr->bounds[2] - 5) << 8) newX = (player_ptr->bounds[2] - 5) << 8;
 
     bool overlap = false;
     if (read_pixel(playerX, playerY) == 0xffff) {overlap = true;}
@@ -212,7 +214,7 @@ int interstage_movement(struct player *player_ptr) {
     if (newY < (player_ptr->bounds[1]) << 8) newY = player_ptr->bounds[1] << 8;
     if (newY > (player_ptr->ground)) newY = player_ptr->ground;
     if (newX < (player_ptr->bounds[0]) << 8) newX = (player_ptr->bounds[0]) << 8;
-    if (newX > (player_ptr->bounds[2] - 7) << 8) newX = (player_ptr->bounds[2] - 7) << 8;
+    if (newX > (player_ptr->bounds[2] - 5) << 8) newX = (player_ptr->bounds[2] - 5) << 8;
 
     int playerX = player_ptr->posx[0] >> 8;
     int playerY = player_ptr->posy[0] >> 8;

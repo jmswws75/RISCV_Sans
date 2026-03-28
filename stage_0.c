@@ -10,7 +10,7 @@ int run_stage_0(int *Global_health) {
     graphics_init();
 
     struct player player1;
-    player1.ground = (192 - 7) << 8;
+    player1.ground = (192 - 5) << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 50 << 8;
         player1.posy[i] = 150 << 8;
