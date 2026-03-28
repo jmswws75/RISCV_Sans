@@ -1,6 +1,7 @@
 #include "graphics.h"
 #include "movement.h"
 #include <math.h>
+#include <stdlib.h>
 
 int run_stage_2(int *Global_health) {
     struct Bone Bone_army[32];
@@ -9,18 +10,14 @@ int run_stage_2(int *Global_health) {
     int bounds_unlimited[4] = {0, 0, 360, 240};
 
     struct player player1;
-    player1.fall_speed = 128;
-    player1.rise_speed = 128;
-    player1.ground = (192 - 7) << 8;
-    player1.max_height = 30 << 8;
+    player1.ground = (192 - 5) << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 50 << 8;
         player1.posy[i] = 150 << 8;
     }
-    player1.start_y = 0;
     player1.was_up_pressed = false;
-    player1.force_fall = false;
     player1.have_gravity = true;
+    
     for (int i = 0; i< 4; i++) {
         player1.bounds[i] = bounds_default[i];
     }
@@ -111,12 +108,12 @@ int run_stage_2(int *Global_health) {
             draw_bone(&Bone_army[i], 0, 0xffff, bounds_default); //draw new one
         }
 
-        movement(&player1);
+        movement(&player1, NULL, 0);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
         draw_player(&player1, 0, 0xf800);
-        if (player1.health == 0) {return 1;}
+        // if (player1.health == 0) {return 1;}
 
         if(Bone_army[15].posx[31] <= -1000 << 8) {
             break;

@@ -1,6 +1,7 @@
 #include "graphics.h"
 #include "movement.h"
 #include <math.h>
+#include <stdlib.h>
 
 int run_stage_0(int *Global_health) {
 
@@ -46,7 +47,7 @@ int run_stage_0(int *Global_health) {
         }
 
         draw_player(&player1, 1, 0x0000);
-        movement(&player1);
+        movement(&player1, NULL, 0);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
@@ -68,7 +69,7 @@ int run_stage_0(int *Global_health) {
         }
 
         draw_player(&player1, 1, 0x0000);
-        movement(&player1);
+        movement(&player1, NULL, 0);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
@@ -120,7 +121,7 @@ int run_stage_0(int *Global_health) {
             }
             draw_bone(&bone_army_1[i], 0, 0xffff, bounds_default); //draw new one
         }
-        movement(&player1);
+        movement(&player1, NULL, 0);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
@@ -196,7 +197,7 @@ int run_stage_0(int *Global_health) {
             draw_bone(&bone_army[i], 0, 0xffff, bounds_default); //draw new one
         }
         
-        movement(&player1);
+        movement(&player1, NULL, 0);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
@@ -308,7 +309,7 @@ int run_stage_0(int *Global_health) {
 		draw_any_blaster(&blaster_army_3[0], bounds_unlimited);
 		draw_any_blaster(&blaster_army_3[1], bounds_unlimited);
 		
-        movement(&player1);
+        movement(&player1, NULL, 0);
         draw_player(&player1, 0, 0xf800);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
@@ -354,8 +355,8 @@ int run_stage_0(int *Global_health) {
         if (result == 2) {
             return 2; // player chooses to fight
         } else if (result == 3) {
-            *Global_health += 50;
-            if (*Global_health > 99) {*Global_health = 99;}
+            *Global_health += 99;
+            // if (*Global_health > 99) {*Global_health = 99;}
             return 3; // player chooses to heal
         }
 
