@@ -71,13 +71,13 @@ void movement(struct player *player_ptr, struct platform *platforms_ptr, int num
             continue;
         }
 
-        if (byte == 0x1D) {          // W
+        if (byte == 0x1D) {  // W
             up_pressed = !break_code;
-        } else if (byte == 0x1C) {   // A
+        } else if (byte == 0x1C) {  // A
             left_pressed = !break_code;
-        } else if (byte == 0x23) {   // D
+        } else if (byte == 0x23) {  // D
             right_pressed = !break_code;
-        } else if (byte == 0x1B) {   // S
+        } else if (byte == 0x1B) {  // S
             down_pressed = !break_code;
         }
 
@@ -90,32 +90,47 @@ void movement(struct player *player_ptr, struct platform *platforms_ptr, int num
     int playerX = player_ptr->posx[0] >> 8;
     int playerY = player_ptr->posy[0] >> 8;
     int size = 5;
+    int sizeIn8 = 5 << 8;
 
     if (player_ptr->have_gravity) {
+
+        bool isGrounded = false;
+        int oldY = player_ptr->posy[1];
+        player_ptr->veloY += player_ptr->gravity; // default gravity increase
+
+        newY += player_ptr->veloY;
+
+        if (newY >= player_ptr->ground) {
+            newY = player_ptr->ground;
+            player_ptr->veloY = 0;
+            isGrounded = true;
+        }
+
+        //platform logic
+        for (int i = 0; i < numPlatforms; i++) { // loop thru every platform
+            int platXstart = platforms_ptr[i].posx[0]; // putting these here to make it clean
+            int platXend = platforms_ptr[i].posx[0] + (platforms_ptr[i].width << 8);
+            int platYtop = platforms_ptr[i].posy[0];
+            if (newX + sizeIn8 >= platXstart && newX <= platXend && player_ptr->veloY > 0 && oldY + sizeIn8 <= platYtop && newY + sizeIn8 >= platYtop) {
+                newY = platYtop - sizeIn8;
+                player_ptr->veloY = 0;
+                isGrounded = true;
+                newX += platforms_ptr[i].velox;
+            }
+        }
+
+        if (up_pressed && !player_ptr->was_up_pressed && isGrounded) { // apply initial bust force
+            player_ptr->veloY = -player_ptr->burst_force; 
+        }
+        if (!up_pressed && player_ptr->veloY < 0) { // release w
+            player_ptr->veloY = player_ptr->veloY / 2;
+        }
 
         // x direction movement
         if (left_pressed && newX > 0)
             newX-=velox;
         if (right_pressed && newX < PLAYER_MAX_X)
             newX+=velox;
-        
-        player_ptr->veloY += player_ptr->gravity; // default gravity increase
-
-        if (up_pressed && !player_ptr->was_up_pressed && newY >= player_ptr->ground) { // apply initial bust force
-            player_ptr->veloY = -player_ptr->burst_force; 
-        }
-        if (!up_pressed && player_ptr->veloY < 0) { // release w
-            player_ptr->veloY = player_ptr->veloY / 2;
-        } 
-
-
-        newY += player_ptr->veloY;
-
-
-        if (newY >= player_ptr->ground) {
-            newY = player_ptr->ground;
-            player_ptr->veloY = 0;
-        }
 
     }
 
