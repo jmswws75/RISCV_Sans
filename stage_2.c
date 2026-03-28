@@ -12,7 +12,7 @@ int run_stage_2(int *Global_health) {
     struct player player1;
     player1.ground = (192 - 5) << 8;
     for (int i = 0; i < 3; i++) {
-        player1.posx[i] = 50 << 8;
+        player1.posx[i] = 157 << 8;
         player1.posy[i] = 150 << 8;
     }
     player1.was_up_pressed = false;
@@ -22,6 +22,9 @@ int run_stage_2(int *Global_health) {
         player1.bounds[i] = bounds_default[i];
     }
     player1.health = *Global_health;
+    player1.gravity = 8;
+    player1.veloY = 0;
+    player1.burst_force = 400;
 
     // left bones
     for (int i = 0; i < 16; i+=2) {
@@ -121,6 +124,44 @@ int run_stage_2(int *Global_health) {
 
         swap_buffers();
 
+    }
+
+    // interstage part
+
+    *Global_health = player1.health;
+
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_unlimited[i];
+    }
+
+    clear_screen();
+    swap_buffers();
+    clear_screen();
+
+    update_pos(160 << 8, player1.posx);
+    update_pos(120 << 8, player1.posy);
+
+    while (1) {
+
+        draw_player(&player1, 1, 0x0000);
+        int result = interstage_movement(&player1);
+        draw_player(&player1, 0, 0xf800);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
+
+        draw_fight_button(100, 180);
+        draw_iteam_button(200, 180);
+
+        if (result == 2) {
+            return 2; // player chooses to fight
+        } else if (result == 3) {
+            *Global_health += 99;
+            if (*Global_health > 99) {*Global_health = 99;}
+            return 3; // player chooses to heal
+        }
+
+        swap_buffers();
     }
 
     

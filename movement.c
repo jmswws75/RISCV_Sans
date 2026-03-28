@@ -48,8 +48,8 @@ void movement(struct player *player_ptr, struct platform *platforms_ptr, int num
     static bool right_pressed = false;
     static bool down_pressed = false;
 
-    int velox = 512;
-    int veloy = 128;
+    int velox = 400;
+    int veloy = 400;
 
 	// Gravity state
     
@@ -158,7 +158,7 @@ void movement(struct player *player_ptr, struct platform *platforms_ptr, int num
     if (read_pixel(playerX + size, playerY + size) == 0xffff) {overlap = true;}
     if (read_pixel(playerX + size/2, playerY + size/2) == 0xffff) {overlap = true;}
 
-    if (overlap && player_ptr->health > 0) {player_ptr->health--;}
+    // if (overlap && player_ptr->health > 0) {player_ptr->health--;}
 
     player_ptr->was_up_pressed = up_pressed;
     
