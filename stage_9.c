@@ -1,0 +1,123 @@
+//#include "graphics.h"
+#include <stdlib.h>
+#include <stdbool.h>
+
+void swap_buffers(void);
+
+#define PLATFORMS_PER_ROW 20
+#define NUM_PLATFORMS (PLATFORMS_PER_ROW * 2)
+#define PLATFORM_WIDTH 26
+#define PLATFORM_HEIGHT 4
+#define PLATFORM_GAP 54
+#define LEVEL_SPEED 256
+#define TOTAL_BLASTERS 10
+#define BLASTER_SHOOT_RIGHT 270
+#define BLASTER_SHOOT_LEFT 90
+#define BLASTER_OFFSET 40
+
+void run_stage_9(void) {
+    struct platform plats[NUM_PLATFORMS];
+    struct blaster active_blaster;
+
+    int bounds_default[4] = {70, 129, 251, 192};
+    int bounds_unlimited[4] = {0, 0, 319, 239};
+    
+    const int left_border = bounds_default[0];
+    const int top_border = bounds_default[1];
+    const int right_border = bounds_default[2];
+    const int bottom_border = bounds_default[3];
+    const int platform_step = PLATFORM_WIDTH + PLATFORM_GAP;
+    const int bottom_row_y = bottom_border - 17 - PLATFORM_HEIGHT;
+    const int top_row_y = bottom_row_y - 16 - PLATFORM_HEIGHT;
+    const int bottom_row_start_x = right_border + 20;
+    const int top_row_start_x = left_border - 20 - PLATFORM_WIDTH;
+    const int section_centers[3] = {(top_border + (top_row_y - 1)) / 2, ((top_row_y + PLATFORM_HEIGHT) + (bottom_row_y - 1)) / 2, ((bottom_row_y + PLATFORM_HEIGHT) + (bottom_border - 1)) / 2};
+
+    clear_screen();
+    draw_rectangle(67, 126, 254, 128, 0xFFFF, bounds_unlimited);
+    draw_rectangle(67, 126, 69, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
+    swap_buffers();
+    clear_screen();
+    draw_rectangle(67, 126, 254, 128, 0xFFFF, bounds_unlimited);
+    draw_rectangle(67, 126, 69, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
+    draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
+    swap_buffers();
+
+    for (int i = 0; i < PLATFORMS_PER_ROW; i++) {
+        int x = bottom_row_start_x + i * platform_step;
+        plats[i].width = PLATFORM_WIDTH;
+        plats[i].height = PLATFORM_HEIGHT;
+        plats[i].posx[0] = x << 8;
+        plats[i].posx[1] = x << 8;
+        plats[i].posx[2] = x << 8;
+        plats[i].posy[0] = bottom_row_y << 8;
+        plats[i].posy[1] = bottom_row_y << 8;
+        plats[i].posy[2] = bottom_row_y << 8;
+        plats[i].velox = -LEVEL_SPEED;
+        plats[i].veloy = 0;
+    }
+
+    for (int i = 0; i < PLATFORMS_PER_ROW; i++) {
+        int idx = PLATFORMS_PER_ROW + i;
+        int x = top_row_start_x - i * platform_step;
+        plats[idx].width = PLATFORM_WIDTH;
+        plats[idx].height = PLATFORM_HEIGHT;
+        plats[idx].posx[0] = x << 8;
+        plats[idx].posx[1] = x << 8;
+        plats[idx].posx[2] = x << 8;
+        plats[idx].posy[0] = top_row_y << 8;
+        plats[idx].posy[1] = top_row_y << 8;
+        plats[idx].posy[2] = top_row_y << 8;
+        plats[idx].velox = LEVEL_SPEED;
+        plats[idx].veloy = 0;
+    }
+
+    int blasters_spawned = 0;
+    bool blaster_active = false;
+
+    while (1) {
+        clear_screen();
+
+        for (int i = 0; i < NUM_PLATFORMS; i++) {
+            update_platform(&plats[i]);
+            draw_platform(&plats[i], 0, bounds_default);
+        }
+
+        // only spawn blaster if previous one finished and haven't reached 10 blasters spawns yet
+        if (!blaster_active && blasters_spawned < TOTAL_BLASTERS) {
+            int spawn_from_left = (blasters_spawned % 2 == 0);
+            int section = rand() % 3;   // 0 = top, 1 = middle, 2 = bottom
+            active_blaster.centerx = spawn_from_left ? (left_border - BLASTER_OFFSET) : (right_border + BLASTER_OFFSET);
+            active_blaster.centery = section_centers[section];
+            active_blaster.size = 1;
+            active_blaster.rotation = spawn_from_left ? BLASTER_SHOOT_RIGHT : BLASTER_SHOOT_LEFT;
+            active_blaster.frameCount = 0;
+            blaster_active = true;
+        }
+
+        // is the blaster finished and the count
+        if (blaster_active) {
+            draw_any_blaster(&active_blaster, bounds_unlimited);
+            if (active_blaster.frameCount > 148) {
+                blaster_active = false;
+                blasters_spawned++;
+            }
+        }
+
+        // redrawing the box cus blasters will eat it
+        draw_rectangle(67, 126, 254, 128, 0xFFFF, bounds_unlimited);
+        draw_rectangle(67, 126, 69, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
+        draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
+
+        swap_buffers();
+
+        // end once 10 blasters spawn
+        if (!blaster_active && blasters_spawned >= TOTAL_BLASTERS) {
+            break;
+        }
+    }
+}
