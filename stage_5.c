@@ -1,4 +1,7 @@
 #include <stdbool.h>
+#include "graphics.h"
+#include <stdlib.h>
+#include "movement.h"
 
 #define NUM_BONES 40
 #define NUM_FAST_BONES 3
@@ -15,7 +18,7 @@
 #define FAST_LEVEL_SPEED (LEVEL_SPEED * 2)
 #define TOP_BOTTOM_GAP 34
 
-void run_stage_5() {
+int run_stage_5(int *Global_health) {
     struct Bone bones[NUM_BONES];
     struct Bone top_fast[NUM_FAST_BONES];
     struct platform plats[NUM_PLATFORMS];
@@ -23,6 +26,23 @@ void run_stage_5() {
 
     int bounds_default[4] = {70, 129, 251, 192};
     int bounds_unlimited[4] = {0, 0, 319, 239};
+
+    struct player player1;
+    player1.ground = (192 - 5) << 8;
+    for (int i = 0; i < 3; i++) {
+        player1.posx[i] = 157 << 8;
+        player1.posy[i] = 150 << 8;
+    }
+    player1.was_up_pressed = false;
+    player1.have_gravity = true;
+    
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_default[i];
+    }
+    player1.health = *Global_health;
+    player1.gravity = 8;
+    player1.veloY = 0;
+    player1.burst_force = 400;
 
     const int left_border = bounds_default[0];
     const int right_border = bounds_default[2];
@@ -120,40 +140,90 @@ void run_stage_5() {
     end_bone.velox = LEVEL_SPEED * 2;
     end_bone.veloy = 0;
 
-while (1) {
-    for (int i = 0; i < NUM_BONES; i++) {
-        draw_bone(&bones[i], 1, 0x0000, bounds_default);
+    while (1) {
+        for (int i = 0; i < NUM_BONES; i++) {
+            draw_bone(&bones[i], 1, 0x0000, bounds_default);
+        }
+
+        for (int i = 0; i < NUM_FAST_BONES; i++) {
+            draw_bone(&top_fast[i], 1, 0x0000, bounds_default);
+        }
+
+        draw_bone(&end_bone, 1, 0x0000, bounds_default);  
+
+        for (int i = 0; i < NUM_PLATFORMS; i++) {
+            erase_platform(&plats[i], 1, bounds_default);
+        }
+
+        draw_player(&player1, 1, 0x0000);
+
+        for (int i = 0; i < NUM_BONES; i++) {
+            update_pos(bones[i].posx[0] + bones[i].velox, bones[i].posx);
+            draw_bone(&bones[i], 0, 0xFFFF, bounds_default);
+        }
+
+        for (int i = 0; i < NUM_FAST_BONES; i++) {
+            update_pos(top_fast[i].posx[0] + top_fast[i].velox, top_fast[i].posx);
+            draw_bone(&top_fast[i], 0, 0xFFFF, bounds_default);
+        }
+
+        update_pos(end_bone.posx[0] + end_bone.velox, end_bone.posx); 
+        draw_bone(&end_bone, 0, 0xFFFF, bounds_default);  
+        
+        movement(&player1, &plats, NUM_PLATFORMS);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
+        draw_player(&player1, 0, 0xf800);
+        if (player1.health == 0) {return 1;}
+
+        for (int i = 0; i < NUM_PLATFORMS; i++) {
+            update_platform(&plats[i]);
+            draw_platform(&plats[i], 0, bounds_default);
+        }
+
+        swap_buffers();
+
+        if (end_bone.posx[0] > (320 << 8)) {
+            break;
+        }
     }
 
-    for (int i = 0; i < NUM_FAST_BONES; i++) {
-        draw_bone(&top_fast[i], 1, 0x0000, bounds_default);
+    // interstage part
+
+    *Global_health = player1.health;
+
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_unlimited[i];
     }
 
-    draw_bone(&end_bone, 1, 0x0000, bounds_default);  
-
-    for (int i = 0; i < NUM_PLATFORMS; i++) {
-        erase_platform(&plats[i], 1, bounds_default);
-    }
-
-    for (int i = 0; i < NUM_BONES; i++) {
-        update_pos(bones[i].posx[0] + bones[i].velox, bones[i].posx);
-        draw_bone(&bones[i], 0, 0xFFFF, bounds_default);
-    }
-
-    for (int i = 0; i < NUM_FAST_BONES; i++) {
-        update_pos(top_fast[i].posx[0] + top_fast[i].velox, top_fast[i].posx);
-        draw_bone(&top_fast[i], 0, 0xFFFF, bounds_default);
-    }
-
-    update_pos(end_bone.posx[0] + end_bone.velox, end_bone.posx); 
-    draw_bone(&end_bone, 0, 0xFFFF, bounds_default);             
-
-    for (int i = 0; i < NUM_PLATFORMS; i++) {
-        update_platform(&plats[i]);
-        draw_platform(&plats[i], 0, bounds_default);
-    }
-
+    clear_screen();
     swap_buffers();
+    clear_screen();
+
+    update_pos(160 << 8, player1.posx);
+    update_pos(120 << 8, player1.posy);
+
+    while (1) {
+
+        draw_player(&player1, 1, 0x0000);
+        int result = interstage_movement(&player1);
+        draw_player(&player1, 0, 0xf800);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
+
+        draw_fight_button(100, 180);
+        draw_iteam_button(200, 180);
+
+        if (result == 2) {
+            return 2; // player chooses to fight
+        } else if (result == 3) {
+            *Global_health += 99;
+            if (*Global_health > 99) {*Global_health = 99;}
+            return 3; // player chooses to heal
+        }
+
+        swap_buffers();
+    }
 }
-}
-// --- End of stage_5.c ---

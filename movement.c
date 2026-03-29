@@ -181,9 +181,6 @@ int interstage_movement(struct player *player_ptr) {
     int velox = 128;
     int veloy = 128;
 
-	// Gravity state
-    
-
     // Read everything in buffer
     while (1) {
         PS2_data = *PS2_ptr;

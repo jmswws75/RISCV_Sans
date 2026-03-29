@@ -1,6 +1,6 @@
 #ifndef STAGE_5_H
 #define STAGE_5_H
 
-void run_stage_5(void);
+int run_stage_5(int *Global_health);
 
 #endif

@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include "movement.h"
+#include "graphics.h"
+
 #define NUM_BONES 50
 #define NUM_PLATFORMS 6
 
@@ -35,6 +39,23 @@ void run_stage_6(void) {
 
     int bounds_default[4] = {70, 129, 251, 192};
     int bounds_unlimited[4] = {0, 0, 319, 239};
+
+    struct player player1;
+    player1.ground = (192 - 5) << 8;
+    for (int i = 0; i < 3; i++) {
+        player1.posx[i] = 157 << 8;
+        player1.posy[i] = 150 << 8;
+    }
+    player1.was_up_pressed = false;
+    player1.have_gravity = true;
+    
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_default[i];
+    }
+    player1.health = *Global_health;
+    player1.gravity = 8;
+    player1.veloY = 0;
+    player1.burst_force = 400;
 
     const int left_border = bounds_default[0];
     const int right_border = bounds_default[2];
