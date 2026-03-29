@@ -12,6 +12,7 @@
 #define GASTER_BLASTER_WIDTH 22
 
 #include <stdbool.h>
+#include "audio.h"
 
 struct Bone {
     // the positions and velocities are stored as multiples of 256 (2^8).
@@ -175,6 +176,7 @@ void run_stage_4();
 
 int main(void)
 {
+    audio_init();
     int Global_health = 99;
 
     stage_0_label:

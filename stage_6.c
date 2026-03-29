@@ -2,8 +2,17 @@
 #include "movement.h"
 #include "graphics.h"
 
-#define NUM_BONES 50
-#define NUM_PLATFORMS 6
+#define NUM_FLOOR_BONES 50
+#define NUM_BONES 56   // 50 floor + big + top1 + top2 + top3 + entry_left + entry_right
+#define NUM_PLATFORMS 7  // 6 regular + big_plat
+
+#define IDX_BIG_BONE    50
+#define IDX_TOP_BONE    51
+#define IDX_TOP_BONE2   52
+#define IDX_TOP_BONE3   53
+#define IDX_ENTRY_LEFT  54
+#define IDX_ENTRY_RIGHT 55
+#define IDX_BIG_PLAT    6
 
 #define BONE_HEIGHT 12
 #define BIG_BONE_HEIGHT 28
@@ -27,15 +36,8 @@
 
 void run_stage_6(void) {
     struct Bone bones[NUM_BONES];
-    struct Bone big_bone;
-    struct Bone top_bone;
-    struct Bone top_bone2;
-    struct Bone top_bone3;
-    struct Bone entry_left;
-    struct Bone entry_right;
     int entry_triggered = 0;
-    struct platform plats[NUM_PLATFORMS];
-    struct platform big_plat;
+    struct platform platforms[NUM_PLATFORMS];
 
     int bounds_default[4] = {70, 129, 251, 192};
     int bounds_unlimited[4] = {0, 0, 319, 239};
@@ -114,7 +116,7 @@ void run_stage_6(void) {
     swap_buffers();
 
     // bone creation
-    for (int i = 0; i < NUM_BONES; i++) {
+    for (int i = 0; i < NUM_FLOOR_BONES; i++) {
         int x = first_bone_x + (i * bone_step);
 
         bones[i].color = 0xFFFF;
@@ -129,217 +131,161 @@ void run_stage_6(void) {
         bones[i].veloy = 0;
     }
 
+    // AI was used to help assist optimizing the bones and platforms into a single array
     // big bone
-    big_bone.color = 0xFFFF;
-    big_bone.length = BIG_BONE_HEIGHT;
-    big_bone.posx[0] = big_bone_x << 8;
-    big_bone.posx[1] = big_bone_x << 8;
-    big_bone.posx[2] = big_bone_x << 8;
-    big_bone.posy[0] = big_bone_y << 8;
-    big_bone.posy[1] = big_bone_y << 8;
-    big_bone.posy[2] = big_bone_y << 8;
-    big_bone.velox = -LEVEL_SPEED * 1.1;
-    big_bone.veloy = 0;
+    bones[IDX_BIG_BONE].color = 0xFFFF;
+    bones[IDX_BIG_BONE].length = BIG_BONE_HEIGHT;
+    for (int i = 0; i < 3; i++) { bones[IDX_BIG_BONE].posx[i] = big_bone_x << 8; bones[IDX_BIG_BONE].posy[i] = big_bone_y << 8; }
+    bones[IDX_BIG_BONE].velox = -LEVEL_SPEED * 1.1;
+    bones[IDX_BIG_BONE].veloy = 0;
 
     // top bone 1
-    top_bone.color = 0xFFFF;
-    top_bone.length = 20;
-    top_bone.posx[0] = top_bone_x << 8;
-    top_bone.posx[1] = top_bone_x << 8;
-    top_bone.posx[2] = top_bone_x << 8;
-    top_bone.posy[0] = top_bone_y << 8;
-    top_bone.posy[1] = top_bone_y << 8;
-    top_bone.posy[2] = top_bone_y << 8;
-    top_bone.velox = -LEVEL_SPEED * 1.1;
-    top_bone.veloy = 0;
+    bones[IDX_TOP_BONE].color = 0xFFFF;
+    bones[IDX_TOP_BONE].length = 20;
+    for (int i = 0; i < 3; i++) { bones[IDX_TOP_BONE].posx[i] = top_bone_x << 8; bones[IDX_TOP_BONE].posy[i] = top_bone_y << 8; }
+    bones[IDX_TOP_BONE].velox = -LEVEL_SPEED * 1.1;
+    bones[IDX_TOP_BONE].veloy = 0;
 
     // top bone 2
-    top_bone2.color = 0xFFFF;
-    top_bone2.length = 25;
-    top_bone2.posx[0] = top_bone2_x << 8;
-    top_bone2.posx[1] = top_bone2_x << 8;
-    top_bone2.posx[2] = top_bone2_x << 8;
-    top_bone2.posy[0] = top_bone2_y << 8;
-    top_bone2.posy[1] = top_bone2_y << 8;
-    top_bone2.posy[2] = top_bone2_y << 8;
-    top_bone2.velox = -LEVEL_SPEED * 1.1;
-    top_bone2.veloy = 0;
+    bones[IDX_TOP_BONE2].color = 0xFFFF;
+    bones[IDX_TOP_BONE2].length = 25;
+    for (int i = 0; i < 3; i++) { bones[IDX_TOP_BONE2].posx[i] = top_bone2_x << 8; bones[IDX_TOP_BONE2].posy[i] = top_bone2_y << 8; }
+    bones[IDX_TOP_BONE2].velox = -LEVEL_SPEED * 1.1;
+    bones[IDX_TOP_BONE2].veloy = 0;
 
     // top bone 3
-    top_bone3.color = 0xFFFF;
-    top_bone3.length = 15;
-    top_bone3.posx[0] = top_bone3_x << 8;
-    top_bone3.posx[1] = top_bone3_x << 8;
-    top_bone3.posx[2] = top_bone3_x << 8;
-    top_bone3.posy[0] = top_bone3_y << 8;
-    top_bone3.posy[1] = top_bone3_y << 8;
-    top_bone3.posy[2] = top_bone3_y << 8;
-    top_bone3.velox = -LEVEL_SPEED * 1.1;
-    top_bone3.veloy = 0;
+    bones[IDX_TOP_BONE3].color = 0xFFFF;
+    bones[IDX_TOP_BONE3].length = 15;
+    for (int i = 0; i < 3; i++) { bones[IDX_TOP_BONE3].posx[i] = top_bone3_x << 8; bones[IDX_TOP_BONE3].posy[i] = top_bone3_y << 8; }
+    bones[IDX_TOP_BONE3].velox = -LEVEL_SPEED * 1.1;
+    bones[IDX_TOP_BONE3].veloy = 0;
 
     // fast left bone
-    entry_left.color = 0xFFFF;
-    entry_left.length = 45;
-    entry_left.posx[0] = (left_border - BONE_WIDTH) << 8;
-    entry_left.posx[1] = (left_border - BONE_WIDTH) << 8;
-    entry_left.posx[2] = (left_border - BONE_WIDTH) << 8;
-    entry_left.posy[0] = 142 << 8;
-    entry_left.posy[1] = 142 << 8;
-    entry_left.posy[2] = 142 << 8;
-    entry_left.velox = 0;
-    entry_left.veloy = 0;
+    bones[IDX_ENTRY_LEFT].color = 0xFFFF;
+    bones[IDX_ENTRY_LEFT].length = 45;
+    for (int i = 0; i < 3; i++) { bones[IDX_ENTRY_LEFT].posx[i] = (left_border - BONE_WIDTH) << 8; bones[IDX_ENTRY_LEFT].posy[i] = 142 << 8; }
+    bones[IDX_ENTRY_LEFT].velox = 0;
+    bones[IDX_ENTRY_LEFT].veloy = 0;
 
     // fast right bone
-    entry_right.color = 0xFFFF;
-    entry_right.length = 45;
-    entry_right.posx[0] = right_border << 8;
-    entry_right.posx[1] = right_border << 8;
-    entry_right.posx[2] = right_border << 8;
-    entry_right.posy[0] = 129 << 8;
-    entry_right.posy[1] = 129 << 8;
-    entry_right.posy[2] = 129 << 8;
-    entry_right.velox = 0;
-    entry_right.veloy = 0;
+    bones[IDX_ENTRY_RIGHT].color = 0xFFFF;
+    bones[IDX_ENTRY_RIGHT].length = 45;
+    for (int i = 0; i < 3; i++) { bones[IDX_ENTRY_RIGHT].posx[i] = right_border << 8; bones[IDX_ENTRY_RIGHT].posy[i] = 129 << 8; }
+    bones[IDX_ENTRY_RIGHT].velox = 0;
+    bones[IDX_ENTRY_RIGHT].veloy = 0;
 
     // platform 1
-    plats[0].width = PLATFORM_WIDTH;
-    plats[0].height = PLATFORM_HEIGHT;
-    plats[0].posx[0] = first_platform_x << 8;
-    plats[0].posx[1] = first_platform_x << 8;
-    plats[0].posx[2] = first_platform_x << 8;
-    plats[0].posy[0] = platform_y << 8;
-    plats[0].posy[1] = platform_y << 8;
-    plats[0].posy[2] = platform_y << 8;
-    plats[0].velox = -LEVEL_SPEED * 1.1;
-    plats[0].veloy = 0;
+    platforms[0].width = PLATFORM_WIDTH;
+    platforms[0].height = PLATFORM_HEIGHT;
+    platforms[0].posx[0] = first_platform_x << 8;
+    platforms[0].posx[1] = first_platform_x << 8;
+    platforms[0].posx[2] = first_platform_x << 8;
+    platforms[0].posy[0] = platform_y << 8;
+    platforms[0].posy[1] = platform_y << 8;
+    platforms[0].posy[2] = platform_y << 8;
+    platforms[0].velox = -LEVEL_SPEED * 1.1;
+    platforms[0].veloy = 0;
 
     // platform 2
-    plats[1].width = PLATFORM_WIDTH;
-    plats[1].height = PLATFORM_HEIGHT;
-    plats[1].posx[0] = second_platform_x << 8;
-    plats[1].posx[1] = second_platform_x << 8;
-    plats[1].posx[2] = second_platform_x << 8;
-    plats[1].posy[0] = platform_y << 8;
-    plats[1].posy[1] = platform_y << 8;
-    plats[1].posy[2] = platform_y << 8;
-    plats[1].velox = -LEVEL_SPEED * 1.1;
-    plats[1].veloy = 0;
+    platforms[1].width = PLATFORM_WIDTH;
+    platforms[1].height = PLATFORM_HEIGHT;
+    platforms[1].posx[0] = second_platform_x << 8;
+    platforms[1].posx[1] = second_platform_x << 8;
+    platforms[1].posx[2] = second_platform_x << 8;
+    platforms[1].posy[0] = platform_y << 8;
+    platforms[1].posy[1] = platform_y << 8;
+    platforms[1].posy[2] = platform_y << 8;
+    platforms[1].velox = -LEVEL_SPEED * 1.1;
+    platforms[1].veloy = 0;
 
     // platform 3
-    plats[2].width = PLATFORM_WIDTH;
-    plats[2].height = PLATFORM_HEIGHT;
-    plats[2].posx[0] = third_platform_x << 8;
-    plats[2].posx[1] = third_platform_x << 8;
-    plats[2].posx[2] = third_platform_x << 8;
-    plats[2].posy[0] = third_platform_y << 8;
-    plats[2].posy[1] = third_platform_y << 8;
-    plats[2].posy[2] = third_platform_y << 8;
-    plats[2].velox = -LEVEL_SPEED * 1.1;
-    plats[2].veloy = 0;
+    platforms[2].width = PLATFORM_WIDTH;
+    platforms[2].height = PLATFORM_HEIGHT;
+    platforms[2].posx[0] = third_platform_x << 8;
+    platforms[2].posx[1] = third_platform_x << 8;
+    platforms[2].posx[2] = third_platform_x << 8;
+    platforms[2].posy[0] = third_platform_y << 8;
+    platforms[2].posy[1] = third_platform_y << 8;
+    platforms[2].posy[2] = third_platform_y << 8;
+    platforms[2].velox = -LEVEL_SPEED * 1.1;
+    platforms[2].veloy = 0;
 
     // platform 4
-    plats[3].width = PLATFORM_WIDTH;
-    plats[3].height = PLATFORM_HEIGHT;
-    plats[3].posx[0] = fourth_platform_x << 8;
-    plats[3].posx[1] = fourth_platform_x << 8;
-    plats[3].posx[2] = fourth_platform_x << 8;
-    plats[3].posy[0] = fourth_platform_y << 8;
-    plats[3].posy[1] = fourth_platform_y << 8;
-    plats[3].posy[2] = fourth_platform_y << 8;
-    plats[3].velox = -LEVEL_SPEED * 1.1;
-    plats[3].veloy = 0;
+    platforms[3].width = PLATFORM_WIDTH;
+    platforms[3].height = PLATFORM_HEIGHT;
+    platforms[3].posx[0] = fourth_platform_x << 8;
+    platforms[3].posx[1] = fourth_platform_x << 8;
+    platforms[3].posx[2] = fourth_platform_x << 8;
+    platforms[3].posy[0] = fourth_platform_y << 8;
+    platforms[3].posy[1] = fourth_platform_y << 8;
+    platforms[3].posy[2] = fourth_platform_y << 8;
+    platforms[3].velox = -LEVEL_SPEED * 1.1;
+    platforms[3].veloy = 0;
 
     // platform 5
-    plats[4].width = PLATFORM_WIDTH;
-    plats[4].height = PLATFORM_HEIGHT;
-    plats[4].posx[0] = fifth_platform_x << 8;
-    plats[4].posx[1] = fifth_platform_x << 8;
-    plats[4].posx[2] = fifth_platform_x << 8;
-    plats[4].posy[0] = fifth_platform_y << 8;
-    plats[4].posy[1] = fifth_platform_y << 8;
-    plats[4].posy[2] = fifth_platform_y << 8;
-    plats[4].velox = -LEVEL_SPEED * 1.1;
-    plats[4].veloy = 0;
+    platforms[4].width = PLATFORM_WIDTH;
+    platforms[4].height = PLATFORM_HEIGHT;
+    platforms[4].posx[0] = fifth_platform_x << 8;
+    platforms[4].posx[1] = fifth_platform_x << 8;
+    platforms[4].posx[2] = fifth_platform_x << 8;
+    platforms[4].posy[0] = fifth_platform_y << 8;
+    platforms[4].posy[1] = fifth_platform_y << 8;
+    platforms[4].posy[2] = fifth_platform_y << 8;
+    platforms[4].velox = -LEVEL_SPEED * 1.1;
+    platforms[4].veloy = 0;
 
     // platform 6
-    plats[5].width = SIXTH_PLATFORM_WIDTH;
-    plats[5].height = PLATFORM_HEIGHT;
-    plats[5].posx[0] = sixth_platform_x << 8;
-    plats[5].posx[1] = sixth_platform_x << 8;
-    plats[5].posx[2] = sixth_platform_x << 8;
-    plats[5].posy[0] = sixth_platform_y << 8;
-    plats[5].posy[1] = sixth_platform_y << 8;
-    plats[5].posy[2] = sixth_platform_y << 8;
-    plats[5].velox = -(LEVEL_SPEED * 0.71);
-    plats[5].veloy = 0;
+    platforms[5].width = SIXTH_PLATFORM_WIDTH;
+    platforms[5].height = PLATFORM_HEIGHT;
+    platforms[5].posx[0] = sixth_platform_x << 8;
+    platforms[5].posx[1] = sixth_platform_x << 8;
+    platforms[5].posx[2] = sixth_platform_x << 8;
+    platforms[5].posy[0] = sixth_platform_y << 8;
+    platforms[5].posy[1] = sixth_platform_y << 8;
+    platforms[5].posy[2] = sixth_platform_y << 8;
+    platforms[5].velox = -(LEVEL_SPEED * 0.71);
+    platforms[5].veloy = 0;
 
-    // should have been platform 2 whoops
-    big_plat.width = PLATFORM_WIDTH;
-    big_plat.height = PLATFORM_HEIGHT;
-    big_plat.posx[0] = big_platform_x << 8;
-    big_plat.posx[1] = big_platform_x << 8;
-    big_plat.posx[2] = big_platform_x << 8;
-    big_plat.posy[0] = big_platform_y << 8;
-    big_plat.posy[1] = big_platform_y << 8;
-    big_plat.posy[2] = big_platform_y << 8;
-    big_plat.velox = -LEVEL_SPEED * 1.1;
-    big_plat.veloy = 0;
+    // should have been platfrom 2 whoops
+    platforms[IDX_BIG_PLAT].width = PLATFORM_WIDTH;
+    platforms[IDX_BIG_PLAT].height = PLATFORM_HEIGHT;
+    for (int i = 0; i < 3; i++) { platforms[IDX_BIG_PLAT].posx[i] = big_platform_x << 8; platforms[IDX_BIG_PLAT].posy[i] = big_platform_y << 8; }
+    platforms[IDX_BIG_PLAT].velox = -LEVEL_SPEED * 1.1;
+    platforms[IDX_BIG_PLAT].veloy = 0;
 
     while (1) {
         for (int i = 0; i < NUM_BONES; i++) {
             draw_bone(&bones[i], 1, 0x0000, bounds_default);
         }
-        draw_bone(&big_bone, 1, 0x0000, bounds_default);
-        draw_bone(&top_bone, 1, 0x0000, bounds_default);
-        draw_bone(&top_bone2, 1, 0x0000, bounds_default);
-        draw_bone(&top_bone3, 1, 0x0000, bounds_default);
-        draw_bone(&entry_left, 1, 0x0000, bounds_default);
-        draw_bone(&entry_right, 1, 0x0000, bounds_default);
-
         for (int i = 0; i < NUM_PLATFORMS; i++) {
-            erase_platform(&plats[i], 1, bounds_default);
+            erase_platform(&platforms[i], 1, bounds_default);
         }
-        erase_platform(&big_plat, 1, bounds_default);
 
-        for (int i = 0; i < NUM_BONES; i++) {
+        for (int i = 0; i < NUM_FLOOR_BONES; i++) {
             update_pos(bones[i].posx[0] + bones[i].velox, bones[i].posx);
             draw_bone(&bones[i], 0, 0xFFFF, bounds_default);
         }
 
-        update_pos(big_bone.posx[0] + big_bone.velox, big_bone.posx);
-        draw_bone(&big_bone, 0, 0xFFFF, bounds_default);
-
-        update_pos(top_bone.posx[0] + top_bone.velox, top_bone.posx);
-        draw_bone(&top_bone, 0, 0xFFFF, bounds_default);
-
-        update_pos(top_bone2.posx[0] + top_bone2.velox, top_bone2.posx);
-        draw_bone(&top_bone2, 0, 0xFFFF, bounds_default);
-
-        update_pos(top_bone3.posx[0] + top_bone3.velox, top_bone3.posx);
-        draw_bone(&top_bone3, 0, 0xFFFF, bounds_default);
-
         // when the two fast bones should come in based on the position of the smaller platform
-        if (!entry_triggered && (plats[5].posx[0] >> 8) <= 160) {
-            entry_left.velox = 1.75 * LEVEL_SPEED;
-            entry_right.velox = -1.75 * LEVEL_SPEED;
+        if (!entry_triggered && (platforms[5].posx[0] >> 8) <= 160) {
+            bones[IDX_ENTRY_LEFT].velox = 1.75 * LEVEL_SPEED;
+            bones[IDX_ENTRY_RIGHT].velox = -1.75 * LEVEL_SPEED;
             entry_triggered = 1;
         }
-        update_pos(entry_left.posx[0] + entry_left.velox, entry_left.posx);
-        draw_bone(&entry_left, 0, 0xFFFF, bounds_default);
-        update_pos(entry_right.posx[0] + entry_right.velox, entry_right.posx);
-        draw_bone(&entry_right, 0, 0xFFFF, bounds_default);
 
-        for (int i = 0; i < NUM_PLATFORMS; i++) {
-            update_platform(&plats[i]);
-            draw_platform(&plats[i], 0, bounds_default);
+        for (int i = IDX_BIG_BONE; i < NUM_BONES; i++) {
+            update_pos(bones[i].posx[0] + bones[i].velox, bones[i].posx);
+            draw_bone(&bones[i], 0, 0xFFFF, bounds_default);
         }
 
-        update_platform(&big_plat);
-        draw_platform(&big_plat, 0, bounds_default);
+        for (int i = 0; i < NUM_PLATFORMS; i++) {
+            update_platform(&platforms[i]);
+            draw_platform(&platforms[i], 0, bounds_default);
+        }
 
         swap_buffers();
 
-        if (bones[NUM_BONES - 1].posx[0] <= ((left_border - 20) << 8)) {
+        if (bones[NUM_FLOOR_BONES - 1].posx[0] <= ((left_border - 20) << 8)) {
             break;
         }
     }

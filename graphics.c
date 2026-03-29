@@ -736,3 +736,23 @@ void draw_iteam_button(int x, int y){
         }
     }
 }
+
+// Draws a 100px wide, 4px tall health bar centered horizontally, 4px below the level box.
+// Yellow (#ffef00) = remaining health, red (#a80506) = damage taken.
+// Call with player1.health (0-100).
+void draw_healthbar(int health) {
+    int bounds_full[4] = {0, 0, 319, 239};
+    short int color_healthy = (short int)0xFF60; // #ffef00 in RGB565
+    short int color_damage  = (short int)0xA820; // #a80506 in RGB565
+
+    int x_start = 110; // centered at x=160, 100px wide (x=110 to x=209)
+    int y_start = 199; // 4px below the level box bottom border (y=195)
+    int y_end   = 202; // 4px tall
+
+    if (health > 0) {
+        draw_rectangle(x_start, y_start, x_start + health - 1, y_end, color_healthy, bounds_full);
+    }
+    if (health < 100) {
+        draw_rectangle(x_start + health, y_start, x_start + 99, y_end, color_damage, bounds_full);
+    }
+}

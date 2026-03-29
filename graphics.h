@@ -60,4 +60,6 @@ void draw_platform(struct platform *plat, short int ind, int bounds[4]);
 void erase_platform(struct platform *plat, short int ind, int bounds[4]);
 void update_platform(struct platform *plat);
 
+void draw_healthbar(int health);
+
 #endif
