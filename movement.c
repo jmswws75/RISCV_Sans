@@ -178,8 +178,8 @@ int interstage_movement(struct player *player_ptr) {
     static bool right_pressed = false;
     static bool down_pressed = false;
 
-    int velox = 128;
-    int veloy = 128;
+    int velox = 400;
+    int veloy = 400;
 
     // Read everything in buffer
     while (1) {
@@ -250,8 +250,18 @@ int interstage_movement(struct player *player_ptr) {
     update_pos(newY, player_ptr->posy);
 
     if (overlap_fight) {
+		break_code = false;
+		up_pressed = false;
+		left_pressed = false;
+		right_pressed = false;
+		down_pressed = false;
         return 2;
     } else if (overlap_heal) {
+		break_code = false;
+		up_pressed = false;
+		left_pressed = false;
+		right_pressed = false;
+		down_pressed = false;
         return 3;
     } else { return 0; }
 
