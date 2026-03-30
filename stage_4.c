@@ -5,18 +5,18 @@
 #define NUM_SETS 5
 #define TOTAL_BONES 20
 
-#define GAP_SIZE 26
+#define GAP_SIZE 16
 #define START_Y 129
 #define BOTTOM_LIMIT 186
-#define SET_SPACING 100
+#define SET_SPACING 120
 
-// change the top length of the bone to be between 4 and 33
+// change the top length of the bone to be between 10 and 33
 static int random_top_length(int previous_top_len) {
-    int top_len = 4 + (rand() % 30);
+    int top_len = 10 + (rand() % 24);
 
     // if it is too close to the previous length redo the random length
     while (previous_top_len >= 0 && abs(top_len - previous_top_len) < 6) {
-        top_len = 4 + (rand() % 30);
+        top_len = 10 + (rand() % 24);
     }
 
     return top_len;
@@ -43,7 +43,7 @@ int run_stage_4(int *Global_health) {
     player1.health = *Global_health;
     player1.gravity = 8;
     player1.veloY = 0;
-    player1.burst_force = 400;
+    player1.burst_force = 512;
 
     int left_border = bounds_default[0];
     int right_border = bounds_default[2];
@@ -98,7 +98,7 @@ int run_stage_4(int *Global_health) {
         Bone_army[r].posy[0] = START_Y << 8;
         Bone_army[r].posy[1] = START_Y << 8;
         Bone_army[r].posy[2] = START_Y << 8;
-        Bone_army[r].velox = -256 * 2;
+        Bone_army[r].velox = -384;
         Bone_army[r].veloy = 0;
 
         // right bottom
@@ -110,7 +110,7 @@ int run_stage_4(int *Global_health) {
         Bone_army[r + 1].posy[0] = bottom_y << 8;
         Bone_army[r + 1].posy[1] = bottom_y << 8;
         Bone_army[r + 1].posy[2] = bottom_y << 8;
-        Bone_army[r + 1].velox = -256 * 2;
+        Bone_army[r + 1].velox = -384;
         Bone_army[r + 1].veloy = 0;
 
         // left top
@@ -122,7 +122,7 @@ int run_stage_4(int *Global_health) {
         Bone_army[l].posy[0] = START_Y << 8;
         Bone_army[l].posy[1] = START_Y << 8;
         Bone_army[l].posy[2] = START_Y << 8;
-        Bone_army[l].velox = 256 * 2;
+        Bone_army[l].velox = 384;
         Bone_army[l].veloy = 0;
 
         // left bottom
@@ -134,7 +134,7 @@ int run_stage_4(int *Global_health) {
         Bone_army[l + 1].posy[0] = bottom_y << 8;
         Bone_army[l + 1].posy[1] = bottom_y << 8;
         Bone_army[l + 1].posy[2] = bottom_y << 8;
-        Bone_army[l + 1].velox = 256 * 2;
+        Bone_army[l + 1].velox = 384;
         Bone_army[l + 1].veloy = 0;
     }
 
