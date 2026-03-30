@@ -34,7 +34,7 @@
 
 #define LEVEL_SPEED 256
 
-void run_stage_6(void) {
+int run_stage_6(int *Global_health) {
     struct Bone bones[NUM_BONES];
     int entry_triggered = 0;
     struct platform platforms[NUM_PLATFORMS];
@@ -141,21 +141,21 @@ void run_stage_6(void) {
 
     // top bone 1
     bones[IDX_TOP_BONE].color = 0xFFFF;
-    bones[IDX_TOP_BONE].length = 20;
+    bones[IDX_TOP_BONE].length = 16;
     for (int i = 0; i < 3; i++) { bones[IDX_TOP_BONE].posx[i] = top_bone_x << 8; bones[IDX_TOP_BONE].posy[i] = top_bone_y << 8; }
     bones[IDX_TOP_BONE].velox = -LEVEL_SPEED * 1.1;
     bones[IDX_TOP_BONE].veloy = 0;
 
     // top bone 2
     bones[IDX_TOP_BONE2].color = 0xFFFF;
-    bones[IDX_TOP_BONE2].length = 25;
+    bones[IDX_TOP_BONE2].length = 18;
     for (int i = 0; i < 3; i++) { bones[IDX_TOP_BONE2].posx[i] = top_bone2_x << 8; bones[IDX_TOP_BONE2].posy[i] = top_bone2_y << 8; }
     bones[IDX_TOP_BONE2].velox = -LEVEL_SPEED * 1.1;
     bones[IDX_TOP_BONE2].veloy = 0;
 
     // top bone 3
     bones[IDX_TOP_BONE3].color = 0xFFFF;
-    bones[IDX_TOP_BONE3].length = 15;
+    bones[IDX_TOP_BONE3].length = 9;
     for (int i = 0; i < 3; i++) { bones[IDX_TOP_BONE3].posx[i] = top_bone3_x << 8; bones[IDX_TOP_BONE3].posy[i] = top_bone3_y << 8; }
     bones[IDX_TOP_BONE3].velox = -LEVEL_SPEED * 1.1;
     bones[IDX_TOP_BONE3].veloy = 0;
@@ -163,14 +163,14 @@ void run_stage_6(void) {
     // fast left bone
     bones[IDX_ENTRY_LEFT].color = 0xFFFF;
     bones[IDX_ENTRY_LEFT].length = 45;
-    for (int i = 0; i < 3; i++) { bones[IDX_ENTRY_LEFT].posx[i] = (left_border - BONE_WIDTH) << 8; bones[IDX_ENTRY_LEFT].posy[i] = 142 << 8; }
+    for (int i = 0; i < 3; i++) { bones[IDX_ENTRY_LEFT].posx[i] = (left_border - BONE_WIDTH) << 8; bones[IDX_ENTRY_LEFT].posy[i] = 129 << 8; }
     bones[IDX_ENTRY_LEFT].velox = 0;
     bones[IDX_ENTRY_LEFT].veloy = 0;
 
     // fast right bone
     bones[IDX_ENTRY_RIGHT].color = 0xFFFF;
     bones[IDX_ENTRY_RIGHT].length = 45;
-    for (int i = 0; i < 3; i++) { bones[IDX_ENTRY_RIGHT].posx[i] = right_border << 8; bones[IDX_ENTRY_RIGHT].posy[i] = 129 << 8; }
+    for (int i = 0; i < 3; i++) { bones[IDX_ENTRY_RIGHT].posx[i] = right_border << 8; bones[IDX_ENTRY_RIGHT].posy[i] = 142 << 8; }
     bones[IDX_ENTRY_RIGHT].velox = 0;
     bones[IDX_ENTRY_RIGHT].veloy = 0;
 
@@ -260,6 +260,8 @@ void run_stage_6(void) {
         for (int i = 0; i < NUM_PLATFORMS; i++) {
             erase_platform(&platforms[i], 1, bounds_default);
         }
+		
+		draw_player(&player1, 1, 0x0000);
 
         for (int i = 0; i < NUM_FLOOR_BONES; i++) {
             update_pos(bones[i].posx[0] + bones[i].velox, bones[i].posx);
@@ -268,7 +270,7 @@ void run_stage_6(void) {
 
         // when the two fast bones should come in based on the position of the smaller platform
         if (!entry_triggered && (platforms[5].posx[0] >> 8) <= 160) {
-            bones[IDX_ENTRY_LEFT].velox = 1.75 * LEVEL_SPEED;
+            bones[IDX_ENTRY_LEFT].velox = 1.5 * LEVEL_SPEED;
             bones[IDX_ENTRY_RIGHT].velox = -1.75 * LEVEL_SPEED;
             entry_triggered = 1;
         }
@@ -282,11 +284,56 @@ void run_stage_6(void) {
             update_platform(&platforms[i]);
             draw_platform(&platforms[i], 0, bounds_default);
         }
+		
+		movement(&player1, &platforms, 7);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
+        draw_player(&player1, 0, 0xf800);
+        if (player1.health == 0) {return 1;}
 
         swap_buffers();
 
         if (bones[NUM_FLOOR_BONES - 1].posx[0] <= ((left_border - 20) << 8)) {
             break;
         }
+    }
+	
+	// interstage part
+
+    *Global_health = player1.health;
+
+    for (int i = 0; i< 4; i++) {
+        player1.bounds[i] = bounds_unlimited[i];
+    }
+
+    clear_screen();
+    swap_buffers();
+    clear_screen();
+
+    update_pos(160 << 8, player1.posx);
+    update_pos(120 << 8, player1.posy);
+
+    while (1) {
+
+        draw_player(&player1, 1, 0x0000);
+        int result = interstage_movement(&player1);
+        draw_player(&player1, 0, 0xf800);
+        draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
+        draw_number(0,0,player1.health/10);
+        draw_number(12,0,player1.health%10);
+
+        draw_fight_button(100, 180);
+        draw_iteam_button(200, 180);
+
+        if (result == 2) {
+            return 2; // player chooses to fight
+        } else if (result == 3) {
+            *Global_health += 99;
+            if (*Global_health > 99) {*Global_health = 99;}
+            return 3; // player chooses to heal
+        }
+
+        swap_buffers();
     }
 }
