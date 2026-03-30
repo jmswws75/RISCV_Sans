@@ -1,6 +1,8 @@
 #ifndef MOVEMENT_H
 #define MOVEMENT_H
 
+#include <stdbool.h>
+
 struct player{
     int posx[3];
     int posy[3];
