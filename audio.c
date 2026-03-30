@@ -105373,7 +105373,6 @@ const int my_samples_n = sizeof(my_samples) / sizeof(my_samples[0]);
 // 	}
 // }
 
-// trying something
 struct audio_t {
     volatile unsigned int control;
     volatile unsigned char rarc;
@@ -105386,22 +105385,102 @@ struct audio_t {
 
 volatile struct audio_t *audiop = ((struct audio_t *)0xff203040);
 
-// clears the audio hardware buffer so that we can start fresh
-void audio_init(void) {
-    audiop->control = 0x8;
-    audiop->control = 0x0;
-}
+static int audio_pos = 0;
 
-void audio_tick(void) {
-    static int pos = 0;
-    int space = audiop->warc;
+// The actual work: fill the output FIFO with as many samples as it will accept.
+// Called from audio_isr (the assembly wrapper below).
+void audio_fill_fifo(void) {
+    int space = audiop->warc;   // WSRC: number of free slots in output FIFO
     while (space > 0) {
-        int sample = ((int)my_samples[pos]) << 16;
+        int sample = ((int)my_samples[audio_pos]) << 16;
         audiop->ldata = sample;
         audiop->rdata = sample;
-        pos++;
-        if (pos >= my_samples_n)
-            pos = 0;
+        audio_pos++;
+        if (audio_pos >= my_samples_n)
+            audio_pos = 0;
         space--;
     }
+}
+
+// Assembly ISR wrapper: saves all caller-saved registers, calls audio_fill_fifo,
+// restores them, then returns from interrupt with mret.
+// More reliable than __attribute__((interrupt("machine"))) across toolchains.
+__attribute__((naked)) void audio_isr(void) {
+    __asm__ volatile(
+        "addi sp, sp, -64\n"
+        "sw   ra,  0(sp)\n"
+        "sw   a0,  4(sp)\n"
+        "sw   a1,  8(sp)\n"
+        "sw   a2, 12(sp)\n"
+        "sw   a3, 16(sp)\n"
+        "sw   a4, 20(sp)\n"
+        "sw   a5, 24(sp)\n"
+        "sw   a6, 28(sp)\n"
+        "sw   a7, 32(sp)\n"
+        "sw   t0, 36(sp)\n"
+        "sw   t1, 40(sp)\n"
+        "sw   t2, 44(sp)\n"
+        "sw   t3, 48(sp)\n"
+        "sw   t4, 52(sp)\n"
+        "sw   t5, 56(sp)\n"
+        "sw   t6, 60(sp)\n"
+        "call audio_fill_fifo\n"
+        "lw   ra,  0(sp)\n"
+        "lw   a0,  4(sp)\n"
+        "lw   a1,  8(sp)\n"
+        "lw   a2, 12(sp)\n"
+        "lw   a3, 16(sp)\n"
+        "lw   a4, 20(sp)\n"
+        "lw   a5, 24(sp)\n"
+        "lw   a6, 28(sp)\n"
+        "lw   a7, 32(sp)\n"
+        "lw   t0, 36(sp)\n"
+        "lw   t1, 40(sp)\n"
+        "lw   t2, 44(sp)\n"
+        "lw   t3, 48(sp)\n"
+        "lw   t4, 52(sp)\n"
+        "lw   t5, 56(sp)\n"
+        "lw   t6, 60(sp)\n"
+        "addi sp, sp, 64\n"
+        "mret\n"
+    );
+}
+
+void audio_init(void) {
+    // Clear write FIFOs (CW = bit 3) then reset control register
+    audiop->control = 0x8;
+    audiop->control = 0x0;
+
+    // Point mtvec to our ISR (direct mode: all traps jump here)
+    __asm__ volatile("csrw mtvec, %0" :: "r"((unsigned int)audio_isr));
+
+    // Enable write FIFO interrupt: WE = bit 1 = 0x2
+    // Fires when output FIFO drops to <= 25% full (WI status bit = 1)
+    // Cleared automatically when ISR fills FIFO back above 25%
+    audiop->control = 0x2;
+
+    // Enable ALL local interrupt bits 16-31 (covers IRQ0-IRQ15)
+    // Brute-force: if ANY of these correspond to the audio core, the interrupt will fire.
+    // Timer fires audio_fill_fifo too, but that's harmless (warc==0 when FIFO is full).
+    // Once confirmed working, narrow down to the single correct bit.
+    __asm__ volatile("csrs mie, %0" :: "r"(0xFFFF0000u));
+    __asm__ volatile("csrs mstatus, %0" :: "r"(1 << 3));
+}
+
+// --- Old polling implementation (kept for reference) ---
+// void audio_tick(void) {
+//     static int pos = 0;
+//     int space = audiop->warc;
+//     while (space > 0) {
+//         int sample = ((int)my_samples[pos]) << 16;
+//         audiop->ldata = sample;
+//         audiop->rdata = sample;
+//         pos++;
+//         if (pos >= my_samples_n)
+//             pos = 0;
+//         space--;
+//     }
+// }
+void audio_tick(void) {
+    // No-op: audio is now interrupt-driven via audio_isr()
 }
