@@ -88,6 +88,86 @@ int main(void)
         } else if (death == 3) { // heal
             goto stage_5_label;
         }
+		
+		stage_6_label:
+        death = 0;
+        death = run_stage_6(&Global_health);
+
+        if (death == 1) { // playear is dead
+            clear_screen(); 
+            swap_buffers(); 
+            
+            clear_screen(); 
+            swap_buffers();
+
+            return 0;
+        } else if (death == 3) { // heal
+            goto stage_6_label;
+        }
+		
+		stage_7_label:
+        death = 0;
+        death = run_stage_7(&Global_health);
+
+        if (death == 1) { // playear is dead
+            clear_screen(); 
+            swap_buffers(); 
+            
+            clear_screen(); 
+            swap_buffers();
+
+            return 0;
+        } else if (death == 3) { // heal
+            goto stage_7_label;
+        }
+		
+		stage_8_label:
+        death = 0;
+        death = run_stage_8(&Global_health);
+
+        if (death == 1) { // playear is dead
+            clear_screen(); 
+            swap_buffers(); 
+            
+            clear_screen(); 
+            swap_buffers();
+
+            return 0;
+        } else if (death == 3) { // heal
+            goto stage_8_label;
+        }
+		
+		stage_9_label:
+        death = 0;
+        death = run_stage_9(&Global_health);
+
+        if (death == 1) { // playear is dead
+            clear_screen(); 
+            swap_buffers(); 
+            
+            clear_screen(); 
+            swap_buffers();
+
+            return 0;
+        } else if (death == 3) { // heal
+            goto stage_9_label;
+        }
+		
+		stage_10_label:
+        death = 0;
+        death = run_stage_10(&Global_health);
+
+        if (death == 1) { // playear is dead
+            clear_screen(); 
+            swap_buffers(); 
+            
+            clear_screen(); 
+            swap_buffers();
+
+            return 0;
+        } else if (death == 3) { // heal
+            goto stage_10_label;
+        }
 
     }
     
