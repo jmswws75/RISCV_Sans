@@ -24,7 +24,7 @@ int run_stage_2(int *Global_health) {
     player1.health = *Global_health;
     player1.gravity = 8;
     player1.veloY = 0;
-    player1.burst_force = 400;
+    player1.burst_force = 512;
 
     // left bones
     for (int i = 0; i < 16; i+=2) {
@@ -37,19 +37,19 @@ int run_stage_2(int *Global_health) {
         Bone_army[i].posy[0] = 183 << 8;
         Bone_army[i].posy[1] = 183 << 8;
         Bone_army[i].posy[2] = 183 << 8;
-        Bone_army[i].velox = 256;
+        Bone_army[i].velox = 384;
         Bone_army[i].veloy = 0;
 
         // top
         Bone_army[i+1].color = 0xffff;
-        Bone_army[i+1].length = 42;
+        Bone_army[i+1].length = 38;
         Bone_army[i+1].posx[0] = (0 - 50 * i) << 8;
         Bone_army[i+1].posx[1] = (0 - 50 * i) << 8;
         Bone_army[i+1].posx[2] = (0 - 50 * i) << 8;
         Bone_army[i+1].posy[0] = 129 << 8;
         Bone_army[i+1].posy[1] = 129 << 8;
         Bone_army[i+1].posy[2] = 129 << 8;
-        Bone_army[i+1].velox = 256;
+        Bone_army[i+1].velox = 384;
         Bone_army[i+1].veloy = 0;
     }
 
@@ -64,19 +64,19 @@ int run_stage_2(int *Global_health) {
         Bone_army[i].posy[0] = 183 << 8;
         Bone_army[i].posy[1] = 183 << 8;
         Bone_army[i].posy[2] = 183 << 8;
-        Bone_army[i].velox = -256;
+        Bone_army[i].velox = -384;
         Bone_army[i].veloy = 0;
 
         // top
         Bone_army[i+1].color = 0xffff;
-        Bone_army[i+1].length = 42;
+        Bone_army[i+1].length = 38;
         Bone_army[i+1].posx[0] = (320 + 50 * (i - 16)) << 8;
         Bone_army[i+1].posx[1] = (320 + 50 * (i - 16)) << 8;
         Bone_army[i+1].posx[2] = (320 + 50 * (i - 16)) << 8;
         Bone_army[i+1].posy[0] = 129 << 8;
         Bone_army[i+1].posy[1] = 129 << 8;
         Bone_army[i+1].posy[2] = 129 << 8;
-        Bone_army[i+1].velox = -256;
+        Bone_army[i+1].velox = -384;
         Bone_army[i+1].veloy = 0;
     }
 
@@ -116,9 +116,9 @@ int run_stage_2(int *Global_health) {
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
         draw_player(&player1, 0, 0xf800);
-        // if (player1.health == 0) {return 1;}
+        if (player1.health == 0) {return 1;}
 
-        if(Bone_army[15].posx[31] <= -1000 << 8) {
+        if(Bone_army[15].posx[31] <= -500 << 8) {
             break;
         }
 
