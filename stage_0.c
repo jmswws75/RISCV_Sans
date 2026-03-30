@@ -23,9 +23,9 @@ int run_stage_0(int *Global_health) {
         player1.bounds[i] = bounds_default[i];
     }
     player1.health = *Global_health;
-    player1.gravity = 16;
+    player1.gravity = 12;
     player1.veloY = 0;
-    player1.burst_force = 500;
+    player1.burst_force = 512;
 
     draw_rectangle(120, 113, 202, 115, 0xFFFF, bounds_unlimited);
     draw_rectangle(120, 113, 122, 195, 0xFFFF, bounds_unlimited);
@@ -45,7 +45,7 @@ int run_stage_0(int *Global_health) {
     // wait for a while
     int frameCount = 0;
     while (1) {
-        if (frameCount > 600) {
+        if (frameCount > 120) {
             break;
         }
 
@@ -106,7 +106,7 @@ int run_stage_0(int *Global_health) {
 
     while (1) {
         
-        if (frameCount > 90) {
+        if (frameCount > 60) {
             break;
         }
 
@@ -244,59 +244,59 @@ int run_stage_0(int *Global_health) {
 	blaster_army_1[0].centerx = 100;
     blaster_army_1[0].centery = 95;
 	blaster_army_1[0].rotation = 315;
-    blaster_army_1[0].frameCount = -100;
+    blaster_army_1[0].frameCount = -80;
 	
     blaster_army_1[1].centerx = 100;
     blaster_army_1[1].centery = 215;
 	blaster_army_1[1].rotation = 225;
-    blaster_army_1[1].frameCount = -100;
+    blaster_army_1[1].frameCount = -80;
 	
     blaster_army_1[2].centerx = 220;
     blaster_army_1[2].centery = 215;
 	blaster_army_1[2].rotation = 135;
-    blaster_army_1[2].frameCount = -100;
+    blaster_army_1[2].frameCount = -80;
 	
     blaster_army_1[3].centerx = 220;
     blaster_army_1[3].centery = 100;
 	blaster_army_1[3].rotation = 45;
-    blaster_army_1[3].frameCount = -100;
+    blaster_army_1[3].frameCount = -80;
 	
 	
     struct blaster blaster_army_2[4];
 	blaster_army_2[0].centerx = 135;
     blaster_army_2[0].centery = 70;
 	blaster_army_2[0].rotation = 0;
-    blaster_army_2[0].frameCount = -200;
+    blaster_army_2[0].frameCount = -160;
 	
     blaster_army_2[1].centerx = 80;
     blaster_army_2[1].centery = 128;
 	blaster_army_2[1].rotation = 270;
-    blaster_army_2[1].frameCount = -200;
+    blaster_army_2[1].frameCount = -160;
 	
     blaster_army_2[2].centerx = 187;
     blaster_army_2[2].centery = 225;
 	blaster_army_2[2].rotation = 180;
-    blaster_army_2[2].frameCount = -200;
+    blaster_army_2[2].frameCount = -160;
 
     blaster_army_2[3].centerx = 235;
     blaster_army_2[3].centery = 181;
 	blaster_army_2[3].rotation = 90;
-    blaster_army_2[3].frameCount = -200;
+    blaster_army_2[3].frameCount = -160;
 	
     struct blaster blaster_army_3[2];
 	blaster_army_3[0].centerx = 90;
     blaster_army_3[0].centery = 145;
 	blaster_army_3[0].rotation = 270;
-    blaster_army_3[0].frameCount = -300;
+    blaster_army_3[0].frameCount = -240;
 	
     blaster_army_3[1].centerx = 230;
     blaster_army_3[1].centery = 160;
 	blaster_army_3[1].rotation = 90;
-    blaster_army_3[1].frameCount = -300;
+    blaster_army_3[1].frameCount = -240;
 
     while (1) {
 
-        if (frameCount > 800){ break; }
+        if (frameCount > 340){ break; }
 
         draw_player(&player1, 1, 0x0000);
         
@@ -342,8 +342,6 @@ int run_stage_0(int *Global_health) {
     update_pos(120 << 8, player1.posy);
 
     while (1) {
-
-        
 
         draw_player(&player1, 1, 0x0000);
         int result = interstage_movement(&player1);
