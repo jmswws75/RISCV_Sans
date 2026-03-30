@@ -24,7 +24,7 @@ int run_stage_3(int *Global_health) {
     player1.health = *Global_health;
     player1.gravity = 8;
     player1.veloY = 0;
-    player1.burst_force = 400;
+    player1.burst_force = 512;
 
     int left_border  = bounds_default[0];   // 70
     int right_border = bounds_default[2];   // 251
@@ -61,7 +61,7 @@ int run_stage_3(int *Global_health) {
         Bone_army[i].posy[0] = 129 << 8;
         Bone_army[i].posy[1] = 129 << 8;
         Bone_army[i].posy[2] = 129 << 8;
-        Bone_army[i].velox = -256;
+        Bone_army[i].velox = -384;
         Bone_army[i].veloy = 0;
 		
         // white bottom
@@ -73,7 +73,7 @@ int run_stage_3(int *Global_health) {
         Bone_army[i + 1].posy[0] = 183 << 8;
         Bone_army[i + 1].posy[1] = 183 << 8;
         Bone_army[i + 1].posy[2] = 183 << 8;
-        Bone_army[i + 1].velox = -256;
+        Bone_army[i + 1].velox = -384;
         Bone_army[i + 1].veloy = 0;
     }
 
@@ -119,7 +119,7 @@ int run_stage_3(int *Global_health) {
         Bone_army[i].posy[0] = 129 << 8;
         Bone_army[i].posy[1] = 129 << 8;
         Bone_army[i].posy[2] = 129 << 8;
-        Bone_army[i].velox = 256;
+        Bone_army[i].velox = 384;
         Bone_army[i].veloy = 0;
 		
         // white bottom
@@ -131,7 +131,7 @@ int run_stage_3(int *Global_health) {
         Bone_army[i + 1].posy[0] = 183 << 8;
         Bone_army[i + 1].posy[1] = 183 << 8;
         Bone_army[i + 1].posy[2] = 183 << 8;
-        Bone_army[i + 1].velox = 256;
+        Bone_army[i + 1].velox = 384;
         Bone_army[i + 1].veloy = 0;
 
         
