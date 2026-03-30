@@ -77,17 +77,17 @@ void run_stage_9(void) {
 
     int blasters_spawned = 0;
     bool blaster_active = false;
+    bool blaster_just_finished = false;
 
     while (1) {
-        clear_screen();
-
         for (int i = 0; i < NUM_PLATFORMS; i++) {
             update_platform(&plats[i]);
+            erase_platform(&plats[i], 2, bounds_default);
             draw_platform(&plats[i], 0, bounds_default);
         }
 
         // only spawn blaster if previous one finished and haven't reached 10 blasters spawns yet
-        if (!blaster_active && blasters_spawned < TOTAL_BLASTERS) {
+        if (!blaster_active && !blaster_just_finished && blasters_spawned < TOTAL_BLASTERS) {
             int spawn_from_left = (blasters_spawned % 2 == 0);
             int section = rand() % 3;   // 0 = top, 1 = middle, 2 = bottom
             active_blaster.centerx = spawn_from_left ? (left_border - BLASTER_OFFSET) : (right_border + BLASTER_OFFSET);
@@ -103,8 +103,20 @@ void run_stage_9(void) {
             draw_any_blaster(&active_blaster, bounds_unlimited);
             if (active_blaster.frameCount > 148) {
                 blaster_active = false;
+                blaster_just_finished = true;
                 blasters_spawned++;
             }
+        } else if (blaster_just_finished) {
+            // erase ghost on the other buffer: wipe head area and beam area
+            draw_rectangle(active_blaster.centerx - 20, active_blaster.centery - 20,
+                           active_blaster.centerx + 20, active_blaster.centery + 20,
+                           0x0000, bounds_unlimited);
+            for (int j = active_blaster.beam_min_y; j < active_blaster.beam_max_y; j++) {
+                draw_rectangle(active_blaster.beam_min_x[j], j,
+                               active_blaster.beam_max_x[j], j,
+                               0x0000, bounds_unlimited);
+            }
+            blaster_just_finished = false;
         }
 
         // redrawing the box cus blasters will eat it
