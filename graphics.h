@@ -18,6 +18,16 @@ struct Bone {
     short int color;
 };
 
+struct Sans {
+    int centerx;
+    int centery;
+};
+
+struct Head {
+    int centerx;
+    int centery;
+};
+
 struct blaster {
     int centerx;
     int centery;
@@ -53,12 +63,12 @@ void clear_screen();
 void draw_number(int x, int y, int num);
 void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]);
 void draw_any_blaster_new(struct blaster *blaster_ptr, int bounds[4]);
-void erase_sans(struct blaster *blaster_ptr);
-void draw_sans(struct blaster *blaster_ptr, int bounds[4]);
-void animate_sans(struct blaster *blaster_ptr, int bounds[4]);
-void erase_head(struct blaster *blaster_ptr);
-void draw_head(struct blaster *blaster_ptr, int bounds[4]);
-void animate_head(struct blaster *blaster_ptr, int bounds[4]);
+void erase_sans(struct Sans *sans_ptr);
+void draw_sans(struct Sans *sans_ptr, int bounds[4]);
+void animate_sans(struct Sans *sans_ptr, int bounds[4]);
+void erase_head(struct Head *head_ptr);
+void draw_head(struct Head *head_ptr, int bounds[4]);
+void animate_head(struct Head *head_ptr, int bounds[4]);
 void store_beam(struct blaster *blaster_ptr, int verticesX[4], int verticesY[4]);
 unsigned short int read_pixel(int x, int y);
 
@@ -67,5 +77,25 @@ void erase_platform(struct platform *plat, short int ind, int bounds[4]);
 void update_platform(struct platform *plat);
 
 void draw_healthbar(int health);
+
+struct Sprite {
+    const short int *data;  // pointer to sprite pixel array
+    int width;
+    int height;
+    // Positions stored as multiples of 256, same convention as struct Bone.
+    // pos[0] = current, pos[1] = what is drawn on the back buffer right now.
+    int posx[3];
+    int posy[3];
+    int velox;
+    int veloy;
+};
+extern struct Sprite attack_sprites[6];
+
+// Cycles through attack_sprites[0..5] like a flipbook.
+// x and y are the screen center position in pixels (not fixed-point).
+void animate_attack(int frames_per_sprite, int total_loops, int x, int y, int bounds[4]);
+
+void draw_sprite(struct Sprite *s, short int ind, int bounds[4]);
+void erase_sprite(struct Sprite *s, short int ind);
 
 #endif
