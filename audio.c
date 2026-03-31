@@ -105387,6 +105387,7 @@ volatile struct audio_t *audiop = ((struct audio_t *)0xff203040);
 
 static int audio_pos = 0;
 
+// AI was used to help heavily debug and code this section
 // The actual work: fill the output FIFO with as many samples as it will accept.
 // Called from audio_isr (the assembly wrapper below).
 void audio_fill_fifo(void) {
@@ -105481,6 +105482,6 @@ void audio_init(void) {
 //         space--;
 //     }
 // }
-void audio_tick(void) {
-    // No-op: audio is now interrupt-driven via audio_isr()
-}
+// void audio_tick(void) {
+//     // No-op: audio is now interrupt-driven via audio_isr()
+// }

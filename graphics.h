@@ -53,6 +53,12 @@ void clear_screen();
 void draw_number(int x, int y, int num);
 void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]);
 void draw_any_blaster_new(struct blaster *blaster_ptr, int bounds[4]);
+void erase_sans(struct blaster *blaster_ptr);
+void draw_sans(struct blaster *blaster_ptr, int bounds[4]);
+void animate_sans(struct blaster *blaster_ptr, int bounds[4]);
+void erase_head(struct blaster *blaster_ptr);
+void draw_head(struct blaster *blaster_ptr, int bounds[4]);
+void animate_head(struct blaster *blaster_ptr, int bounds[4]);
 void store_beam(struct blaster *blaster_ptr, int verticesX[4], int verticesY[4]);
 unsigned short int read_pixel(int x, int y);
 
