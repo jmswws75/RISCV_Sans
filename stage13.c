@@ -32,8 +32,8 @@ int run_stage_13(int *Global_health) {
     for (int i = 0; i < 6; i++) {
         Bone_army[i].color = 0xffff;
         Bone_army[i].veloy = 0;
-        if (i < 3) {Bone_army[i].velox = -256;}
-        else {Bone_army[i].velox = 256;}
+        if (i < 3) {Bone_army[i].velox = -600;}
+        else {Bone_army[i].velox = 600;}
     }
 
     // right
@@ -104,7 +104,7 @@ int run_stage_13(int *Global_health) {
 
     while (1) {
 
-        if (frameCount > 800){ break; }
+        if (frameCount > 67){ break; }
 
         for (int i = 0; i < 6; i++) {
             draw_bone(&Bone_army[i], 1, 0x0000, bounds_default);
@@ -124,6 +124,7 @@ int run_stage_13(int *Global_health) {
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
+        draw_healthbar(player1.health);
 
         draw_rectangle(60, 138, 263, 140, 0xFFFF, bounds_unlimited);
         draw_rectangle(60, 138, 62, 195, 0xFFFF, bounds_unlimited);
@@ -133,5 +134,7 @@ int run_stage_13(int *Global_health) {
         swap_buffers();
         frameCount++;
     }
+
+    *Global_health = player1.health;
 
 }

@@ -26,4 +26,10 @@ struct player{
     
 };
 
+static bool break_code = false;
+static bool up_pressed = false;
+static bool left_pressed = false;
+static bool right_pressed = false;
+static bool down_pressed = false;
+
 #endif

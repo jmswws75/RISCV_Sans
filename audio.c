@@ -105385,8 +105385,9 @@ struct audio_t {
 
 volatile struct audio_t *audiop = ((struct audio_t *)0xff203040);
 
-// AI was used to help heavily debug and code this section
 static int audio_pos = 0;
+
+// AI was used to help heavily debug and code this section
 // The actual work: fill the output FIFO with as many samples as it will accept.
 // Called from audio_isr (the assembly wrapper below).
 void audio_fill_fifo(void) {
@@ -105467,7 +105468,7 @@ void audio_init(void) {
     __asm__ volatile("csrs mstatus, %0" :: "r"(1 << 3));
 }
 
-// --- Old polling implementation (Isaac's old theory that made the sound a bit buggy)
+// --- Old polling implementation (kept for reference) ---
 // void audio_tick(void) {
 //     static int pos = 0;
 //     int space = audiop->warc;
@@ -105480,4 +105481,7 @@ void audio_init(void) {
 //             pos = 0;
 //         space--;
 //     }
+// }
+// void audio_tick(void) {
+//     // No-op: audio is now interrupt-driven via audio_isr()
 // }

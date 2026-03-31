@@ -114,6 +114,7 @@ int run_stage_18b(int *Global_health) {
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
+        draw_healthbar(player1.health);
         draw_player(&player1, 0, 0xf800);
         if (player1.health == 0) {return 1;}
 		
@@ -126,4 +127,6 @@ int run_stage_18b(int *Global_health) {
 		if (frame_count >= 260) {break;}
 		
     }
+
+    *Global_health = player1.health;
 }

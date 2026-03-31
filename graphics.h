@@ -57,6 +57,7 @@ void wait_for_vsync();
 void plot_pixel(int x, int y, short int line_color);
 void update_pos(int newPos, int pos[]);
 void draw_bone(struct Bone *bone_ptr, short int ind, short int color, int bounds[4]);
+void draw_bone_h(struct Bone *bone_ptr, short int ind, short int color, int bounds[4]);
 void draw_line(int x0, int y0, int x1, int y1, short int color);
 void draw_rectangle(int x0, int y0, int x1, int y1, short int color, int bounds[4]);
 void clear_screen();

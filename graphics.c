@@ -971,6 +971,107 @@ void draw_any_blaster(struct blaster *blaster_ptr, int bounds[4]) {
     blaster_ptr->frameCount++;
 }
 
+void draw_any_thin_blaster(struct blaster *blaster_ptr, int bounds[4]) {
+
+    // avoid drawing for any invisible blasters
+    if (blaster_ptr->frameCount > 68) { return; }
+	if (blaster_ptr->frameCount < 0) { blaster_ptr->frameCount++; return;}
+	
+    // calculates all constants
+	int cx = blaster_ptr->centerx;
+	int cy = blaster_ptr->centery;
+	int frame = blaster_ptr->frameCount;
+	if (frame < 0) {frame = 0;}
+	int cosV = cosValues[blaster_ptr->rotation];
+    int sinV = sinValues[blaster_ptr->rotation];
+	
+	short int blasterColor;
+	
+	if (frame < 20) { blasterColor = blasterColors[19-frame]; }
+	else if (frame >= 48 && frame < 68) { blasterColor = blasterColors[frame-48]; }
+	else if (frame == 68) { blasterColor = 0x0000; }
+	else { blasterColor = 0xffff; }
+	
+	short int beamColor;
+	if (frame >= 28 && frame <= 48) { beamColor = 0xFFFF; }
+	else if (frame > 48 && frame < 68) { beamColor = blasterColors[frame - 48]; }
+    else { beamColor = 0x0000; }
+
+    int min_x = cx - 40; if (min_x < 0) min_x = 0;
+    int max_x = cx + 40; if (max_x > 320) max_x = 320;
+    int max_y = cy + 40; if (max_y > 240) max_y = 240;
+    int min_y = cy - 40; if (min_y < 0) min_y = 0;
+
+
+    for (int j = min_y; j < max_y; j+=4) {
+		
+		int centreDistanceY = j - cy;
+		int y_x = centreDistanceY * sinV;
+		int y_y = centreDistanceY * cosV;
+
+        volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (min_x << 1));
+		
+        int unrotated_X = (min_x - cx) * cosV + y_x;
+        int unrotated_Y = -1 * (min_x - cx) * sinV + y_y;
+
+        for (int i = min_x; i < max_x; i+=4) {
+            // calculate centre of blaster head to current pixel location
+
+            int sourceX = ((unrotated_X) >> 8) + (GASTER_BLASTER_WIDTH >> 1);
+            int sourceY = ((unrotated_Y) >> 8) + (GASTER_BLASTER_HEIGHT >> 1);
+
+            // draw head
+            if (sourceX >= 0 && sourceX < GASTER_BLASTER_WIDTH && sourceY >= 0 && sourceY < GASTER_BLASTER_HEIGHT) {
+                int index = sourceX + sourceY * GASTER_BLASTER_WIDTH;
+                if (Gaster_Blaster[index] == 1) {
+                    *pixel_ptr = blasterColor;
+                }
+            }
+            pixel_ptr+=4;
+
+            unrotated_X += (cosV << 2);
+            unrotated_Y -= (sinV << 2);
+        }
+    }
+
+    if (frame == 28) {
+        int halfWidth = 3;
+        int halfHeight = GASTER_BLASTER_HEIGHT / 2;
+        int beamLength = 200;
+
+        int xUnrotated[4] = { -halfWidth, halfWidth, halfWidth, -halfWidth};
+        int yUnrotated[4] = { halfHeight, halfHeight, halfHeight + beamLength, halfHeight + beamLength};
+        int verticesX[4], verticesY[4];
+
+        for (int i = 0; i < 4; i++) {
+            verticesX[i] = cx + ((xUnrotated[i] * cosV - yUnrotated[i] * sinV) >> 8);
+            verticesY[i] = cy + ((xUnrotated[i] * sinV + yUnrotated[i] * cosV) >> 8);
+        }
+
+        store_beam(blaster_ptr, verticesX, verticesY);
+    }
+
+    if ((frame >= 28 && frame <= 68)) {
+        for (int j = blaster_ptr->beam_min_y; j < blaster_ptr->beam_max_y; j++) {
+            int xLeft = blaster_ptr->beam_min_x[j];
+            int xRight = blaster_ptr->beam_max_x[j];
+
+            if (xLeft < 0) xLeft = 0;
+            if (xRight >= 320) xRight = 319;
+
+            volatile short int *pixel_ptr = (volatile short int *)(pixel_buffer_start + (j << 10) + (xLeft << 1));
+
+            for (int i = xLeft; i <= xRight; i++) {
+                *pixel_ptr = beamColor; 
+                pixel_ptr++;            // move to the next pixel in memory
+            }
+        }
+    }
+    
+
+    blaster_ptr->frameCount++;
+}
+
 void erase_sans(struct Sans *sans_ptr) {
     int cx = sans_ptr->centerx;
     int cy = sans_ptr->centery;
@@ -1236,6 +1337,19 @@ void draw_number(int x, int y, int num) {
     }
 }
 
+void draw_bone_h(struct Bone *bone_ptr, short int ind, short int color, int bounds[4]) {
+    int x0 = (bone_ptr->posx[ind]) >> 8;
+    int y0 = (bone_ptr->posy[ind]) >> 8;
+    int length = bone_ptr->length;
+    draw_rectangle(x0, y0, x0+2, y0+1, color, bounds);
+    draw_rectangle(x0, y0+3, x0+2, y0+4, color, bounds);
+    draw_rectangle(x0+2+length+1, y0, x0+2+length+1+2, y0+1, color, bounds);
+    draw_rectangle(x0+2+length+1, y0+3, x0+2+length+1+2, y0+4, color, bounds);
+
+    // draw the middle part
+    draw_rectangle(x0+1, y0+1, x0+2+length+2, y0+3, color, bounds);
+}
+
 void clear_screen(){
     for (int i = 0; i < 320; i++) {
         for (int j = 0; j < 240; j++) {
@@ -1302,15 +1416,15 @@ void draw_healthbar(int health) {
     short int color_healthy = (short int)0xFF60; // #ffef00 in RGB565
     short int color_damage  = (short int)0xA820; // #a80506 in RGB565
 
-    int x_start = 110; 
-    int y_start = 199; 
-    int y_end   = 202;
+    int x_start = 110; // centered at x=160, 100px wide (x=110 to x=209)
+    int y_start = 205; // 4px below the level box bottom border (y=195)
+    int y_end   = 208; // 4px tall
 
     if (health > 0) {
-        draw_rectangle(x_start, y_start, x_start + health, y_end, color_healthy, bounds_full);
+        draw_rectangle(x_start, y_start, x_start + health - 1, y_end, color_healthy, bounds_full);
     }
     if (health < 100) {
-        draw_rectangle(x_start + health, y_start, x_start + 100, y_end, color_damage, bounds_full);
+        draw_rectangle(x_start + health, y_start, x_start + 99, y_end, color_damage, bounds_full);
     }
 }
 

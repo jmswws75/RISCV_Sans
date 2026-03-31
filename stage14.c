@@ -140,7 +140,7 @@ int run_stage_14(int *Global_health) {
         Bone_army[l + 1].veloy = 0;
     }
 	
-	int frame_count;
+	int frame_count = 0;
 
     while (1) {
         for (int i = 0; i < TOTAL_BONES; i++) {
@@ -158,6 +158,7 @@ int run_stage_14(int *Global_health) {
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
+        draw_healthbar(player1.health);
         draw_player(&player1, 0, 0xf800);
         if (player1.health == 0) {return 1;}
 
@@ -169,4 +170,6 @@ int run_stage_14(int *Global_health) {
 			break;
         }
     }
+
+    *Global_health = player1.health;
 }

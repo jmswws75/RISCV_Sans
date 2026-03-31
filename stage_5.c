@@ -50,11 +50,11 @@ int run_stage_5(int *Global_health) {
     const int bone_draw_width = 5;
     const int bone_step = bone_draw_width + BONE_SPACING;
 
-    const int first_bone_x = left_border - (NUM_BONES * bone_step);
+    const int first_bone_x = left_border - (NUM_BONES * bone_step) - 30;
     const int bone_y = 176;
 
     const int platform_y = bone_y - PLATFORM_GAP - PLATFORM_HEIGHT;
-    const int first_platform_x = left_border - 243;
+    const int first_platform_x = left_border - 243 - 30;
 
     // top bones start at the top wall
     const int top_bone_y = 129;
@@ -174,6 +174,7 @@ int run_stage_5(int *Global_health) {
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
+        draw_healthbar(player1.health);
         draw_player(&player1, 0, 0xf800);
         if (player1.health == 0) {return 1;}
 
@@ -212,6 +213,7 @@ int run_stage_5(int *Global_health) {
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
         draw_number(0,0,player1.health/10);
         draw_number(12,0,player1.health%10);
+        draw_healthbar(player1.health);
 
         draw_fight_button(100, 180);
         draw_iteam_button(200, 180);
