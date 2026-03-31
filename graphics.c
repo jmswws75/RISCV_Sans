@@ -1083,6 +1083,34 @@ void animate_head(struct Head *head_ptr, int bounds[4]){
     }
 }
 
+void animate_sans_and_head(struct Sans *sans_ptr, struct Head *head_ptr, int bounds[4]){
+    int erase_sans_x = sans_ptr->centerx;
+    int erase_head_x = head_ptr->centerx;
+    for(int shift = 0; shift < 60; shift++){
+        // erase both at their back-buffer positions (previous iteration)
+        int save_sans = sans_ptr->centerx;
+        sans_ptr->centerx = erase_sans_x;
+        erase_sans(sans_ptr);
+        sans_ptr->centerx = save_sans;
+
+        int save_head = head_ptr->centerx;
+        head_ptr->centerx = erase_head_x;
+        erase_head(head_ptr);
+        head_ptr->centerx = save_head;
+
+        // advance both and draw
+        erase_sans_x = sans_ptr->centerx;
+        sans_ptr->centerx -= 1;
+        draw_sans(sans_ptr, bounds);
+
+        erase_head_x = head_ptr->centerx;
+        head_ptr->centerx -= 1;
+        draw_head(head_ptr, bounds);
+
+        swap_buffers();
+    }
+}
+
 // void draw_any_blaster_new(struct blaster *blaster_ptr, int bounds[4]) {
 
 //     // avoid drawing for any invisible blasters
