@@ -336,7 +336,7 @@ int main(void)
         clear_screen();
 
         while (1) {
-
+            
             draw_player(&player1, 1, 0x0000);
             int result = interstage_movement(&player1);
             draw_player(&player1, 0, 0xf800);
@@ -349,6 +349,8 @@ int main(void)
 
             if (result == 2) { // fight
                 count++;
+                animate_sans_and_head(&sans, &head, bounds_unlimited);
+                animate_attack(4, 161, 83, bounds_unlimited);
                 break;
             } else if (result == 3) {
                 Global_health += 99;

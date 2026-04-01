@@ -12,12 +12,12 @@ int run_stage_0(int *Global_health) {
 
     struct player player1;
     struct Sans sans;
-    sans.centerx = 200;
-    sans.centery = 120;
+    sans.centerx = 161;
+    sans.centery = 83;
 
     struct Head head;
-    head.centerx = 200;
-    head.centery = 120;
+    head.centerx = 161;
+    head.centery = 83;
     player1.ground = (192 - 5) << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 50 << 8;
@@ -320,10 +320,14 @@ int run_stage_0(int *Global_health) {
 			draw_any_blaster(&blaster_army_0[i], bounds_unlimited);
 			draw_any_blaster(&blaster_army_1[i], bounds_unlimited);
 			draw_any_blaster(&blaster_army_2[i], bounds_unlimited);
+            draw_sans(&sans, bounds_unlimited);
+            draw_head(&head, bounds_unlimited);
 		}
 		
 		draw_any_blaster(&blaster_army_3[0], bounds_unlimited);
 		draw_any_blaster(&blaster_army_3[1], bounds_unlimited);
+        draw_sans(&sans, bounds_unlimited);
+        draw_head(&head, bounds_unlimited);
 		
         movement(&player1, NULL, 0);
         draw_player(&player1, 0, 0xf800);
@@ -370,7 +374,7 @@ int run_stage_0(int *Global_health) {
 
         if (result == 2) {
             animate_sans_and_head(&sans, &head, bounds_unlimited);
-            animate_attack(4, 160, 120, bounds_unlimited);
+            animate_attack(4, 161, 83, bounds_unlimited);
 
             return 2; // player chooses tos fight
         } else if (result == 3) {

@@ -11,6 +11,13 @@ int run_stage_13(int *Global_health) {
     graphics_init();
 
     struct player player1;
+    struct Sans sans;
+    sans.centerx = 161;
+    sans.centery = 83;
+
+    struct Head head;
+    head.centerx = 161;
+    head.centery = 83;
     player1.ground = (192 - 5) << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 160 << 8;
@@ -103,6 +110,8 @@ int run_stage_13(int *Global_health) {
     int frameCount = 0;
 
     while (1) {
+        draw_sans(&sans, bounds_unlimited);
+        draw_head(&head, bounds_unlimited);
 
         if (frameCount > 67){ break; }
 

@@ -97,6 +97,13 @@ int run_stage_20(int *Global_health) {
 	graphics_init();
     
 	struct player player1;
+    struct Sans sans;
+    sans.centerx = 161;
+    sans.centery = 83;
+
+    struct Head head;
+    head.centerx = 161;
+    head.centery = 83;
     player1.ground = (192 - 5) << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 157 << 8;
@@ -130,6 +137,8 @@ int run_stage_20(int *Global_health) {
         // snap player to bottom
         int frameCount = 0;
         while (1) {
+            draw_sans(&sans, bounds_unlimited);
+            draw_head(&head, bounds_unlimited);
             if (frameCount > 20) {
                 break;
             }
@@ -157,7 +166,7 @@ int run_stage_20(int *Global_health) {
 
         // substage0-1: red lines
         while (1) {
-
+            
             if (frameCount > 20) {
                 break;
             }
@@ -1686,6 +1695,8 @@ int run_stage_20(int *Global_health) {
 
  		for (int i = 0; i < 102; i++) {
 			draw_any_thin_blaster(&final_attack[i], bounds_unlimited);
+            draw_sans(&sans, bounds_unlimited);
+            draw_head(&head, bounds_unlimited);
 		}
 		
         movement(&player1, NULL, 0);

@@ -18,6 +18,13 @@ int run_stage_16b(int *Global_health) {
 	graphics_init();
 
     struct player player1;
+    struct Sans sans;
+    sans.centerx = 161;
+    sans.centery = 83;
+
+    struct Head head;
+    head.centerx = 161;
+    head.centery = 83;
     player1.ground = (192 - 5) << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 63 << 8;
@@ -87,7 +94,8 @@ int run_stage_16b(int *Global_health) {
 	int frame_count = 0;
 
     while (1) {
-        
+        draw_sans(&sans, bounds_unlimited);
+        draw_head(&head, bounds_unlimited);
         for (int i = 0; i < 21; i++) {
             draw_bone(&bone_army[i], 1, 0x0000, bounds_default); //erase old one
         }

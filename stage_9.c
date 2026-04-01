@@ -24,6 +24,13 @@ int run_stage_9(int *Global_health) {
     int bounds_unlimited[4] = {0, 0, 319, 239};
 	
 	struct player player1;
+    struct Sans sans;
+    sans.centerx = 161;
+    sans.centery = 83;
+
+    struct Head head;
+    head.centerx = 161;
+    head.centery = 83;
     player1.ground = (192 - 5) << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 157 << 8;
@@ -98,6 +105,8 @@ int run_stage_9(int *Global_health) {
     bool blaster_just_finished = false;
 
     while (1) {
+        draw_sans(&sans, bounds_unlimited);
+        draw_head(&head, bounds_unlimited);
 		for (int i = 0; i < NUM_PLATFORMS; i++) {
 			erase_platform(&plats[i], 2, bounds_default);
 		}
@@ -147,6 +156,8 @@ int run_stage_9(int *Global_health) {
         draw_rectangle(67, 126, 69, 195, 0xFFFF, bounds_unlimited);
         draw_rectangle(67, 193, 254, 195, 0xFFFF, bounds_unlimited);
         draw_rectangle(252, 126, 254, 195, 0xFFFF, bounds_unlimited);
+        draw_sans(&sans, bounds_unlimited);
+        draw_head(&head, bounds_unlimited);
 		
 		movement(&player1, &plats, NUM_PLATFORMS);
         draw_rectangle(0,0, 30, 20, 0x0000, bounds_unlimited);
@@ -193,6 +204,8 @@ int run_stage_9(int *Global_health) {
         draw_iteam_button(200, 180);
 
         if (result == 2) {
+            animate_sans_and_head(&sans, &head, bounds_unlimited);
+            animate_attack(4, 161, 83, bounds_unlimited);
             return 2; // player chooses to fight
         } else if (result == 3) {
             *Global_health += 99;

@@ -18,6 +18,13 @@ int run_stage_10(int *Global_health) {
     int bounds_unlimited[4] = {0, 0, 319, 239};
     
 	struct player player1;
+    struct Sans sans;
+    sans.centerx = 161;
+    sans.centery = 83;
+
+    struct Head head;
+    head.centerx = 161;
+    head.centery = 83;
     player1.ground = (192 - 5) << 8;
     for (int i = 0; i < 3; i++) {
         player1.posx[i] = 157 << 8;
@@ -88,6 +95,8 @@ int run_stage_10(int *Global_health) {
     }
 
     while (1) {
+        draw_sans(&sans, bounds_unlimited);
+        draw_head(&head, bounds_unlimited);
         for (int i = 0; i < NUM_BOTTOM_BONES; i++) {
             draw_bone(&bottom_bones[i], 1, 0x0000, bounds_default);
         }
@@ -162,6 +171,8 @@ int run_stage_10(int *Global_health) {
         draw_iteam_button(200, 180);
 
         if (result == 2) {
+            animate_sans_and_head(&sans, &head, bounds_unlimited);
+            animate_attack(4, 161, 83, bounds_unlimited);
             return 2; // player chooses to fight
         } else if (result == 3) {
             *Global_health += 99;
