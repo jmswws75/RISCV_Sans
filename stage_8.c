@@ -2,6 +2,7 @@
 #include "graphics.h"
 #include "movement.h"
 
+// AI was used here to make macros to make editing easier
 #define NUM_BOTTOM_BONES 40
 #define NUM_VERT_BONES   20
 #define NUM_VERT_LAYERS  3

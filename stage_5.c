@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "movement.h"
 
+// AI helped turned something into macro to make editing easier
 #define NUM_BONES 40
 #define NUM_FAST_BONES 3
 #define NUM_PLATFORMS 3

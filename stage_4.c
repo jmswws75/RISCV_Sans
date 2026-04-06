@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "movement.h"
 
+// AI helped turn some things into macro to make it easier to edit
 #define NUM_SETS 5
 #define TOTAL_BONES 20
 
@@ -74,6 +75,7 @@ int run_stage_4(int *Global_health) {
     int prev_top = -1;  // remember the previous top bone height (to make sure that the next random one isn't too similar)
 
     for (int g = 0; g < NUM_SETS; g++) {
+        // AI helped with the indecies part
         int r = 2 * g;          // indcies (0,2,4,6,8)
         int l = 10 + 2 * g;     // indicies (10,12,14,16,18)
 

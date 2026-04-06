@@ -36,6 +36,7 @@ void draw_player(struct player *player_ptr, short int ind, short int color)
     
 }
 
+// AI was used very slightly here to help fix very small issues
 void movement(struct player *player_ptr, struct platform *platforms_ptr, int numPlatforms){
 
     int PS2_data;

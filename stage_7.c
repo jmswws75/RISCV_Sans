@@ -2,6 +2,7 @@
 #include "movement.h"
 #include "graphics.h"
 
+// AI was used here to turn some things into macros to make editing easier
 #define NUM_BONES_PER_ROW 8
 #define NUM_ROWS 3
 #define TOTAL_BONES (NUM_BONES_PER_ROW * NUM_ROWS)

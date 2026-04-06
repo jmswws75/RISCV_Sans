@@ -5,6 +5,7 @@
 
 void swap_buffers(void);
 
+// AI was used here to make macros to make editing easier
 #define PLATFORMS_PER_ROW 20
 #define NUM_PLATFORMS (PLATFORMS_PER_ROW * 2)
 #define PLATFORM_WIDTH 26
@@ -118,6 +119,7 @@ int run_stage_9(int *Global_health) {
             draw_platform(&plats[i], 0, bounds_default);
         }
 
+        // AI was used here to help clean up and debug
         // only spawn blaster if previous one finished and haven't reached 10 blasters spawns yet
         if (!blaster_active && !blaster_just_finished && blasters_spawned < TOTAL_BLASTERS) {
             int spawn_from_left = (blasters_spawned % 2 == 0);
@@ -130,6 +132,7 @@ int run_stage_9(int *Global_health) {
             blaster_active = true;
         }
 
+        // AI was used here to help debug
         // is the blaster finished and the count
         if (blaster_active) {
             draw_any_blaster(&active_blaster, bounds_unlimited);

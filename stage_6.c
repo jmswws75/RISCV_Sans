@@ -69,6 +69,7 @@ int run_stage_6(int *Global_health) {
     const int left_border = bounds_default[0];
     const int right_border = bounds_default[2];
 
+    // AI was used here to help fix some calculations
     const int bone_step = BONE_WIDTH + BONE_GAP;
 
     // Where starting point of the thing is

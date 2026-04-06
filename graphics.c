@@ -1425,14 +1425,16 @@ void draw_sans(struct Sans *sans_ptr, int bounds[4]){
     }
 }
 
+// wasn't used
 void animate_sans(struct Sans *sans_ptr, int bounds[4]){
     int erase_centerx = sans_ptr->centerx;
     for(int shift = 0; shift < 60; shift++){
-        // erase at the position currently on the back buffer (previous iteration)
+        // AI was used here to help debug
         int save = sans_ptr->centerx;
         sans_ptr->centerx = erase_centerx;
         erase_sans(sans_ptr);
         sans_ptr->centerx = save;
+        // end of help
 
         erase_centerx = sans_ptr->centerx;
         sans_ptr->centerx -= 1;
@@ -1539,10 +1541,10 @@ void draw_z(struct Zz *z_ptr, int bounds[4]){
     }
 }
 
+// wasn't used
 void animate_head(struct Head *head_ptr, int bounds[4]){
     int erase_centerx = head_ptr->centerx;
     for(int shift = 0; shift < 60; shift++){
-        // erase at the position currently on the back buffer (previous iteration)
         int save = head_ptr->centerx;
         head_ptr->centerx = erase_centerx;
         erase_head(head_ptr);
@@ -1555,26 +1557,28 @@ void animate_head(struct Head *head_ptr, int bounds[4]){
     }
 }
 
+// combination of animate head and sans so drawn on the same buffer to prevent lag
 void animate_sans_and_head(struct Sans *sans_ptr, struct Head *head_ptr, int bounds[4]){
     int erase_sans_x = sans_ptr->centerx;
     int erase_head_x = head_ptr->centerx;
+
+    // shifting
     for(int shift = 0; shift < 60; shift++){
-        // erase both at their back-buffer positions (previous iteration)
+        // AI was used here to help debug
         int save_sans = sans_ptr->centerx;
         sans_ptr->centerx = erase_sans_x;
         erase_sans(sans_ptr);
         sans_ptr->centerx = save_sans;
-
         int save_head = head_ptr->centerx;
         head_ptr->centerx = erase_head_x;
         erase_head(head_ptr);
         head_ptr->centerx = save_head;
+        // end of help
 
-        // advance both and draw
+
         erase_sans_x = sans_ptr->centerx;
         sans_ptr->centerx -= 1;
         draw_sans(sans_ptr, bounds);
-
         erase_head_x = head_ptr->centerx;
         head_ptr->centerx -= 1;
         draw_head(head_ptr, bounds);
@@ -1787,9 +1791,9 @@ void draw_healthbar(int health) {
     short int color_healthy = (short int)0xFF60; // #ffef00 in RGB565
     short int color_damage  = (short int)0xA820; // #a80506 in RGB565
 
-    int x_start = 110; // centered at x=160, 100px wide (x=110 to x=209)
-    int y_start = 205; // 4px below the level box bottom border (y=195)
-    int y_end   = 208; // 4px tall
+    int x_start = 110; 
+    int y_start = 205;
+    int y_end   = 208; 
 
     if (health > 0) {
         draw_rectangle(x_start, y_start, x_start + health - 1, y_end, color_healthy, bounds_full);
@@ -1838,6 +1842,7 @@ void draw_sprite(struct Sprite *s, short int ind, int bounds[4]) {
 }
 
 void erase_sprite(struct Sprite *s, short int ind) {
+    // AI was used here to help clean up the if statment
     int cx = (ind == 0 ? s->posx[0] : s->posx[1]) >> 8;
     int cy = (ind == 0 ? s->posy[0] : s->posy[1]) >> 8;
 

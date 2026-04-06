@@ -2,6 +2,7 @@
 #include "movement.h"
 #include <stdlib.h>
 
+// AI was used here to make macros to make editing easier
 #define NUM_BOTTOM_BONES 8
 #define NUM_TOP_BONES 8
 #define BONE_WIDTH 5
@@ -44,6 +45,7 @@ int run_stage_10(int *Global_health) {
     const int left_border = bounds_default[0];
     const int right_border = bounds_default[2];
     const int bottom_border = bounds_default[3];
+    // AI was used here to help fix some math
     const int bone_step = BONE_WIDTH + BONE_SPACING;
     const int top_y = 129;
     const int bottom_y = bottom_border - BOTTOM_BONE_HEIGHT - 5;
